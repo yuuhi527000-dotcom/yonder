@@ -34,7 +34,7 @@ async function register() {
   btn.disabled = true; btn.textContent = '登録中...'; errEl.textContent = '';
   const { error } = await sb.auth.signUp({ email, password });
   if (error) { errEl.textContent = '登録に失敗しました：' + error.message; btn.disabled = false; btn.textContent = '新規登録'; return; }
-  document.getElementById('panel-register').innerHTML = '<div class="success-msg"><div class="success-icon">✉️</div><div class="success-title">確認メールを送信しました</div><div class="success-sub">' + email + ' に届いたメールのリンクをクリックして登録を完了してください</div></div>';
+  document.getElementById('panel-register').innerHTML = '<div class="success-msg"><div class="success-icon">✉️</div><div class="success-title">確認メールを送信しました</div><div class="success-sub">' + email + ' に届いたメールのリンクをクリックしてください</div></div>';
 }
 
 document.addEventListener('keydown', (e) => {

@@ -1,8 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --acc:#8b5e3c;--acc2:#c4956a;--acc3:#f0e8df;
-  --bg:#faf8f5;--ink:#2c1f14;--ink2:#6b4f38;--ink3:#a08060;
-  --border:#e8ddd3;--r:14px;
-}
+:root{--acc:#8b5e3c;--acc2:#c4956a;--acc3:#f0e8df;--bg:#faf8f5;--ink:#2c1f14;--ink2:#6b4f38;--ink3:#a08060;--border:#e8ddd3;--r:14px;}
 body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+/* ナビゲーション */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:0.5px solid var(--border);background:#fff;position:sticky;top:0;z-index:100;}
+.nav-logo{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;color:var(--acc);padding:12px 0;text-decoration:none;flex-shrink:0;}
+.nav-logo span{font-size:9px;font-weight:400;color:var(--ink3);display:block;letter-spacing:.12em;margin-top:1px;}
+.nav-tabs{display:flex;align-items:center;}
+.nav-tab{padding:14px 12px;font-size:12px;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;text-decoration:none;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Zen Kaku Gothic New',sans-serif;}
+.nav-tab:hover{color:var(--acc);}
+.nav-tab.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:500;}
+.nav-tab.logout{color:var(--ink3);}
+.nav-tab.logout:hover{color:#b85a42;}

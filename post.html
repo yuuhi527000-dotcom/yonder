@@ -1,24 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yonder - 作品投稿</title>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonder - 投稿</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    :root{--acc:#8b5e3c;--acc2:#c4956a;--acc3:#f0e8df;--bg:#faf8f5;--ink:#2c1f14;--ink2:#6b4f38;--ink3:#a08060;--border:#e8ddd3;--r:12px;}
-    body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
-
-    /* ヘッダー */
-    .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid var(--border);background:#fff;position:sticky;top:0;z-index:10;}
-    .logo{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:var(--acc);}
-    .hdr-right{display:flex;align-items:center;gap:12px;}
-    .hdr-user{font-size:12px;color:var(--ink3);}
-    .logout-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--ink3);cursor:pointer;transition:all .15s;}
-    .logout-btn:hover{border-color:var(--acc2);color:var(--acc);}
-
-    /* フォーム */
     .container{max-width:640px;margin:0 auto;padding:24px 20px 60px;}
     .page-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:24px;}
     .field{margin-bottom:20px;}
@@ -29,14 +16,10 @@
     input[type=text]:focus{outline:none;border-color:var(--acc2);}
     .char-count{font-size:11px;color:var(--ink3);text-align:right;margin-top:4px;}
     .char-count.over{color:#b85a42;}
-
-    /* ジャンル */
     .tag-group{display:flex;flex-wrap:wrap;gap:8px;}
     .tag{border:0.5px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink2);cursor:pointer;background:#fff;transition:all .15s;user-select:none;}
     .tag:hover{border-color:var(--acc2);}
     .tag.sel{background:var(--acc);border-color:var(--acc);color:#fff;}
-
-    /* リンク */
     .link-item{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
     .link-row{display:flex;align-items:center;gap:8px;}
     .link-label{font-size:12px;color:var(--ink3);width:90px;flex-shrink:0;}
@@ -46,8 +29,6 @@
     .link-ok{font-size:10px;color:#4a9b6f;padding-left:98px;}
     input.valid{border-color:#7db89a;background:#f2faf6;}
     input.invalid{border-color:#d49080;background:#fdf2ef;}
-
-    /* エディタ */
     .editor-wrap{border:0.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;}
     .editor-toolbar{padding:8px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:6px;background:#fdf8f5;}
     .toolbar-note{font-size:11px;color:var(--ink3);}
@@ -68,51 +49,44 @@
     .popup.show{display:block;}
     .popup-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--ink);transition:background .12s;}
     .popup-item:hover{background:var(--acc3);}
-
-    /* 投稿ボタン */
-    .submit-area{margin-top:28px;}
     .submit-btn{width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:.06em;transition:opacity .15s;}
     .submit-btn:hover{opacity:.88;}
     .submit-btn:disabled{opacity:.3;cursor:not-allowed;}
     .submit-note{font-size:11px;color:var(--ink3);text-align:center;margin-top:8px;}
     .err-msg{font-size:12px;color:#b85a42;text-align:center;margin-top:10px;min-height:18px;}
-
-    /* 完了画面 */
     #done-screen{display:none;text-align:center;padding:60px 20px;}
     .done-icon{font-size:40px;margin-bottom:16px;}
     .done-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:8px;}
     .done-sub{font-size:13px;color:var(--ink3);line-height:1.8;margin-bottom:28px;}
     .done-btn{display:inline-block;padding:12px 28px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:opacity .15s;}
     .done-btn:hover{opacity:.88;}
+    textarea{width:100%;margin-top:8px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.9;min-height:120px;resize:vertical;}
+    textarea:focus{outline:none;border-color:var(--acc2);}
   </style>
 </head>
 <body>
-  <div class="hdr">
-    <div class="logo">Yonder</div>
-    <div class="hdr-right">
-      <span class="hdr-user" id="hdr-email"></span>
-      <button class="logout-btn" onclick="logout()">ログアウト</button>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Yonder<span>COMPLETED NOVELS ONLY</span></a>
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">読む</a>
+      <a href="post.html" class="nav-tab active">投稿する</a>
+      <a href="dashboard.html" class="nav-tab">ダッシュボード</a>
+      <button class="nav-tab logout" onclick="logout()">ログアウト</button>
     </div>
-  </div>
+  </nav>
 
   <div class="container">
     <div id="form-screen">
       <div class="page-title">作品を投稿する</div>
-
-      <!-- 題名 -->
       <div class="field">
         <div class="flabel">題名 <span class="req">必須</span></div>
         <input type="text" id="inp-title" placeholder="作品タイトルを入力" oninput="checkSubmit()">
       </div>
-
-      <!-- キャッチコピー -->
       <div class="field">
         <div class="flabel">キャッチコピー <span class="req">必須</span></div>
         <input type="text" id="inp-copy" placeholder="読者に刺さる一文を（50字以内）" oninput="updCopy()">
         <div class="char-count" id="copy-count">0 / 50</div>
       </div>
-
-      <!-- ジャンル -->
       <div class="field">
         <div class="flabel">ジャンル <span class="req">必須</span></div>
         <div class="tag-group" id="genre-group">
@@ -126,66 +100,43 @@
           <div class="tag" onclick="selGenre(this,'その他')">その他</div>
         </div>
       </div>
-
-      <!-- リンク -->
       <div class="field">
         <div class="flabel">リンク <span class="opt">任意</span></div>
         <div class="link-item">
-          <div class="link-row">
-            <span class="link-label">なろう</span>
-            <input type="text" id="inp-narou" placeholder="https://ncode.syosetu.com/..." oninput="validateLink('narou')">
-          </div>
+          <div class="link-row"><span class="link-label">なろう</span><input type="text" id="inp-narou" placeholder="https://ncode.syosetu.com/..." oninput="validateLink('narou')"></div>
           <div class="link-hint">ncode.syosetu.com または novel18.syosetu.com のみ</div>
           <div id="msg-narou"></div>
         </div>
         <div class="link-item">
-          <div class="link-row">
-            <span class="link-label">カクヨム</span>
-            <input type="text" id="inp-kakuyomu" placeholder="https://kakuyomu.jp/..." oninput="validateLink('kakuyomu')">
-          </div>
+          <div class="link-row"><span class="link-label">カクヨム</span><input type="text" id="inp-kakuyomu" placeholder="https://kakuyomu.jp/..." oninput="validateLink('kakuyomu')"></div>
           <div class="link-hint">kakuyomu.jp のみ</div>
           <div id="msg-kakuyomu"></div>
         </div>
         <div class="link-item">
-          <div class="link-row">
-            <span class="link-label">X</span>
-            <input type="text" id="inp-x" placeholder="https://x.com/..." oninput="validateLink('x')">
-          </div>
+          <div class="link-row"><span class="link-label">X</span><input type="text" id="inp-x" placeholder="https://x.com/..." oninput="validateLink('x')"></div>
           <div class="link-hint">x.com または twitter.com のみ</div>
           <div id="msg-x"></div>
         </div>
       </div>
-
-      <!-- 本文エディタ -->
       <div class="field">
         <div class="flabel">本文 <span class="req">必須</span></div>
         <div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">完結済みの作品のみ投稿できます。全文を貼り付けてください。</div>
         <div class="editor-wrap">
-          <div class="editor-toolbar">
-            <span class="toolbar-note">行左の</span>
-            <span class="toolbar-badge">▶ をタップで章区切りを挿入</span>
-          </div>
-          <div class="lines-area" id="lines-area">
-            <div style="padding:20px;font-size:13px;color:var(--ink3);text-align:center;">
-              下のテキストエリアに本文を貼り付けてください
-            </div>
-          </div>
+          <div class="editor-toolbar"><span class="toolbar-note">行左の</span><span class="toolbar-badge">▶ をタップで章区切りを挿入</span></div>
+          <div class="lines-area" id="lines-area"><div style="padding:20px;font-size:13px;color:var(--ink3);text-align:center;">下のテキストエリアに本文を貼り付けてください</div></div>
         </div>
-        <textarea id="body-input" style="width:100%;margin-top:8px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.9;min-height:120px;resize:vertical;" placeholder="ここに本文を貼り付けてください。貼り付けると上のエディタに反映されます。" oninput="loadBody()"></textarea>
+        <textarea id="body-input" placeholder="ここに本文を貼り付けてください。貼り付けると上のエディタに反映されます。" oninput="loadBody()"></textarea>
       </div>
-
-      <div class="submit-area">
+      <div class="field" style="margin-top:28px;">
         <button class="submit-btn" id="submit-btn" onclick="submitNovel()" disabled>投稿する</button>
         <div class="submit-note">投稿後の編集はキャッチコピーのみ可能です</div>
         <div class="err-msg" id="err-msg"></div>
       </div>
     </div>
-
-    <!-- 完了画面 -->
     <div id="done-screen">
       <div class="done-icon">📖</div>
       <div class="done-title">投稿が完了しました</div>
-      <div class="done-sub">作品の審査が完了次第、<br>読者に表示されます。</div>
+      <div class="done-sub">ありがとうございます。<br>作品が読者に届きます。</div>
       <button class="done-btn" onclick="location.href='post.html'">続けて投稿する</button>
     </div>
   </div>
