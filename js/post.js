@@ -153,7 +153,8 @@ function checkSubmit() {
   const copyLen = [...copy].length;
   const body = document.getElementById('body-input').value.trim();
   const linksOk = linkState.narou && linkState.kakuyomu && linkState.x;
-  document.getElementById('submit-btn').disabled = !(title && copy && copyLen <= 50 && selectedGenre && body && linksOk);
+  const termsOk = document.getElementById('terms-check') ? document.getElementById('terms-check').checked : true;
+  document.getElementById('submit-btn').disabled = !(title && copy && copyLen <= 50 && selectedGenre && body && linksOk && termsOk);
 }
 
 // 本文を章区切り込みで構築
