@@ -43,17 +43,46 @@ async function loadStats() {
   document.getElementById('s-users').textContent = '—';
 }
 
+let novelSortKey = 'created_at';
+let novelSortAsc = false;
+let allNovels = [];
+
 async function loadNovels() {
   const el = document.getElementById('novels-table');
-  const { data: novels } = await sb.from('novels').select('*, reviews(count)').order('created_at', { ascending: false });
+  const { data: novels } = await sb.from('novels').select('*').order('created_at', { ascending: false });
+  allNovels = novels || [];
+  renderNovels();
+}
 
-  if (!novels || novels.length === 0) {
+function setSort(key) {
+  if (novelSortKey === key) {
+    novelSortAsc = !novelSortAsc;
+  } else {
+    novelSortKey = key;
+    novelSortAsc = key !== 'created_at';
+  }
+  renderNovels();
+}
+
+function renderNovels() {
+  const el = document.getElementById('novels-table');
+
+  if (!allNovels || allNovels.length === 0) {
     el.innerHTML = '<div class="loading">作品がありません</div>';
     return;
   }
 
+  const sorted = [...allNovels].sort((a, b) => {
+    let av, bv;
+    if (novelSortKey === 'created_at') { av = new Date(a.created_at); bv = new Date(b.created_at); }
+    else if (novelSortKey === 'bayes_score') { av = a.bayes_score || 0; bv = b.bayes_score || 0; }
+    return novelSortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+
   const { data: allReports } = await sb.from('reports').select('novel_id').eq('status', 'pending');
   const reportedIds = allReports ? allReports.map(r => r.novel_id) : [];
+
+  const sortIcon = (key) => novelSortKey === key ? (novelSortAsc ? ' ↑' : ' ↓') : '';
 
   el.innerHTML = `
     <table>
@@ -61,13 +90,14 @@ async function loadNovels() {
         <tr>
           <th>タイトル</th>
           <th>ジャンル</th>
-          <th>スコア</th>
+          <th style="cursor:pointer" onclick="setSort('bayes_score')">スコア${sortIcon('bayes_score')}</th>
           <th>状態</th>
+          <th style="cursor:pointer" onclick="setSort('created_at')">投稿日${sortIcon('created_at')}</th>
           <th>操作</th>
         </tr>
       </thead>
       <tbody>
-        ${novels.map(n => `
+        ${sorted.map(n => `
           <tr id="novel-row-${n.id}">
             <td>
               <div class="novel-title-cell" style="cursor:pointer;color:var(--acc);" onclick="viewNovel('${n.id}')">${escHtml(n.title)}</div>
@@ -80,6 +110,7 @@ async function loadNovels() {
             <td>
               ${!n.is_visible ? '<span class="badge badge-hidden">非表示</span>' : reportedIds.includes(n.id) ? '<span class="badge badge-report">通報あり</span>' : '<span class="badge badge-good">公開中</span>'}
             </td>
+            <td style="font-size:11px;color:var(--ink3);">${new Date(n.created_at).toLocaleDateString('ja-JP')}</td>
             <td>
               ${n.is_visible
                 ? `<button class="action-btn danger" onclick="hideNovel('${n.id}')">非表示</button>`
