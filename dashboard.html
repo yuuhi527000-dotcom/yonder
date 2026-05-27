@@ -1,13 +1,63 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yonder - ダッシュボード</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .container{max-width:720px;margin:0 auto;padding:24px 20px 60px;}
+    .page-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:6px;}
+    .page-sub{font-size:12px;color:var(--ink3);margin-bottom:28px;}
+    .novel-card{background:#fff;border:0.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+    .novel-title{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+    .novel-copy{font-size:12px;color:var(--ink3);margin-bottom:16px;}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+    .stat-box{background:var(--bg);border-radius:10px;padding:12px;text-align:center;}
+    .stat-num{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;color:var(--acc);}
+    .stat-label{font-size:10px;color:var(--ink3);margin-top:3px;letter-spacing:.05em;}
+    .eval-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;}
+    .bar-good{background:#7db89a;}
+    .bar-mid{background:#c4956a;}
+    .bar-bad{background:#d49080;}
+    .eval-legend{display:flex;gap:14px;}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);}
+    .legend-dot{width:8px;height:8px;border-radius:50%;}
+    .divider{height:0.5px;background:var(--border);margin:14px 0;}
+    .bail-list{display:flex;flex-direction:column;gap:6px;}
+    .bail-item{font-size:12px;color:var(--ink2);padding:8px 12px;background:var(--bg);border-radius:8px;line-height:1.6;}
+    .bail-reason{font-size:10px;color:var(--ink3);margin-top:2px;}
+    .score-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+    .score-high{background:#f0faf5;color:#4a9b6f;}
+    .score-mid{background:var(--acc3);color:var(--acc);}
+    .score-low{background:#fdf2ef;color:#b85a42;}
+    .empty{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .edit-copy{background:none;border:0.5px solid var(--border);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--ink3);cursor:pointer;margin-left:8px;transition:all .15s;}
+    .edit-copy:hover{border-color:var(--acc2);color:var(--acc);}
+    .copy-edit-wrap{display:flex;align-items:center;gap:8px;margin-top:6px;}
+    .copy-edit-wrap input{flex:1;padding:7px 12px;border:0.5px solid var(--acc2);border-radius:8px;font-size:13px;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);}
+    .copy-save{padding:6px 14px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;}
+    .copy-cancel{padding:6px 14px;background:none;border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink3);cursor:pointer;}
+  </style>
 </head>
 <body>
-  <p style="text-align:center;padding:40px;font-family:serif;">ダッシュボードは次のステップで実装します</p>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Yonder<span>COMPLETED NOVELS ONLY</span></a>
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">読む</a>
+      <a href="post.html" class="nav-tab">投稿する</a>
+      <a href="dashboard.html" class="nav-tab active">ダッシュボード</a>
+      <button class="nav-tab logout" onclick="logout()">ログアウト</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-title">ダッシュボード</div>
+    <div class="page-sub">あなたの作品のパフォーマンスを確認できます</div>
+    <div id="novels-list"><div class="loading">読み込み中...</div></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/dashboard.js"></script>
