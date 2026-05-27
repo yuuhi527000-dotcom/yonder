@@ -169,7 +169,8 @@
     </div>
     <div class="pick-actions">
       <button class="main-btn" id="read-btn" onclick="goRead()" disabled>選んで読む →</button>
-      <div class="skip-row">
+      <button class="main-btn" id="back-btn" onclick="backToSetup()" style="display:none;background:var(--acc3);color:var(--acc);">← 条件設定に戻る</button>
+      <div class="skip-row" id="skip-row" style="display:flex">
         <button class="skip-btn" onclick="doSkip()">どちらも気分じゃない</button>
         <span style="font-size:11px;color:var(--ink3)" id="skip-ct">スキップ残り 3回</span>
       </div>

@@ -13,7 +13,7 @@ let evalSel = null;
   if (!session) { window.location.href = 'login.html'; return; }
   currentUser = session.user;
 
-  // 読書ロック確認（評価していない作品があれば読む画面へ）
+  // 読書ロック確認
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
   if (lock) {
     const { data: novel } = await sb.from('novels').select('*').eq('id', lock.novel_id).single();
@@ -42,7 +42,6 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
-// 条件設定→検索
 async function startSearch() {
   goTo('s-pick');
   await loadCards();
@@ -52,16 +51,17 @@ async function loadCards() {
   const cardsRow = document.getElementById('cards-row');
   cardsRow.innerHTML = '<div class="loading">読み込み中...</div>';
   document.getElementById('read-btn').disabled = true;
+  document.getElementById('skip-row').style.display = 'flex';
   selectedNovel = null;
+  novelA = null;
+  novelB = null;
 
-  // 選択ジャンル
+  // 選択ジャンル・文字数
   const selGenres = [...document.querySelectorAll('#s-setup .tag.sel')].map(t => t.textContent).filter(t => !['〜1万字','1〜5万字','5〜15万字','15万字〜'].includes(t));
-  // 選択文字数
   const selSizes = [...document.querySelectorAll('#s-setup .tag.sel')].map(t => t.textContent).filter(t => ['〜1万字','1〜5万字','5〜15万字','15万字〜'].includes(t));
   const evalMin = parseInt(document.getElementById('eval-min').value) || 0;
   const evalMax = parseInt(document.getElementById('eval-max').value) || 100;
 
-  // 文字数レンジ
   let charMin = 0, charMax = 9999999;
   if (selSizes.length > 0) {
     charMin = 9999999; charMax = 0;
@@ -73,7 +73,6 @@ async function loadCards() {
     });
   }
 
-  // DBから取得（ベイズスコアで±5%の誤差込み）
   let query = sb.from('novels').select('*').eq('is_visible', true);
   if (selGenres.length > 0) query = query.in('genre', selGenres);
   if (charMin > 0) query = query.gte('char_count', charMin);
@@ -83,19 +82,26 @@ async function loadCards() {
   const maxScore = Math.min(100, (evalMax + 5)) / 100;
   query = query.gte('bayes_score', minScore).lte('bayes_score', maxScore);
 
-  // 自分が読んだ作品を除外
+  // 自分が読んだ・スキップした作品を除外
   const { data: readNovels } = await sb.from('reviews').select('novel_id').eq('user_id', currentUser.id);
   const readIds = readNovels ? readNovels.map(r => r.novel_id) : [];
   if (readIds.length > 0) query = query.not('id', 'in', '(' + readIds.join(',') + ')');
 
   const { data: novels } = await query.limit(20);
 
+  // 2件未満 → 条件設定に戻るボタンを表示
   if (!novels || novels.length < 2) {
     cardsRow.innerHTML = '<div class="no-novels" style="grid-column:1/-1">条件に合う作品が見つかりませんでした。<br>条件を変えて試してみてください。</div>';
+    document.getElementById('skip-row').style.display = 'none';
+    document.getElementById('read-btn').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'block';
     return;
   }
 
-  // ランダムに2件選ぶ
+  // 通常表示に戻す
+  document.getElementById('read-btn').style.display = 'block';
+  document.getElementById('back-btn').style.display = 'none';
+
   const shuffled = novels.sort(() => Math.random() - 0.5);
   novelA = shuffled[0];
   novelB = shuffled[1];
@@ -134,18 +140,14 @@ function selCard(which, novel) {
 
 async function goRead() {
   if (!selectedNovel) return;
-  // 読書ロック設定
   await sb.from('reading_lock').upsert({ user_id: currentUser.id, novel_id: selectedNovel.id });
-  // 表示回数・選ばれた回数を記録
   await recordStats(selectedNovel.id, novelA.id, novelB.id);
   renderReadScreen(selectedNovel);
   goTo('s-read');
 }
 
 async function recordStats(chosenId, aId, bId) {
-  // 選ばれた作品
   await sb.rpc('increment_chosen', { p_novel_id: chosenId }).catch(() => {});
-  // 選ばれなかった作品
   const notChosenId = chosenId === aId ? bId : aId;
   await sb.rpc('increment_not_chosen', { p_novel_id: notChosenId }).catch(() => {});
 }
@@ -177,15 +179,20 @@ function updProg() {
   document.getElementById('prog-bar').style.width = Math.min(100, Math.round(pct)) + '%';
 }
 
-// スキップ
 async function doSkip() {
   if (skipLeft <= 0) { alert('本日のスキップ回数を使い切りました'); return; }
   skipLeft--;
   document.getElementById('skip-ct').textContent = 'スキップ残り ' + skipLeft + '回';
-  // スキップ回数をDBに記録
   const today = new Date().toISOString().split('T')[0];
   await sb.from('skips').upsert({ user_id: currentUser.id, skip_date: today, count: 3 - skipLeft }, { onConflict: 'user_id,skip_date' });
   await loadCards();
+}
+
+function backToSetup() {
+  document.getElementById('read-btn').style.display = 'block';
+  document.getElementById('back-btn').style.display = 'none';
+  document.getElementById('skip-row').style.display = 'flex';
+  goTo('s-setup');
 }
 
 // 途中離脱
@@ -211,18 +218,10 @@ async function submitBail() {
   const comment = document.getElementById('bail-comment').value.trim() || null;
   const btn = document.getElementById('bail-submit');
   btn.disabled = true; btn.textContent = '送信中...';
-
-  await sb.from('reviews').insert({
-    novel_id: selectedNovel.id,
-    user_id: currentUser.id,
-    rating: bailEvalSel,
-    is_completed: false,
-    bail_reason: reasonSel,
-    comment,
-  });
-
+  await sb.from('reviews').insert({ novel_id: selectedNovel.id, user_id: currentUser.id, rating: bailEvalSel, is_completed: false, bail_reason: reasonSel, comment });
   await updateBayesScore(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
+  evalSel = null;
   await showDone();
 }
 
@@ -238,51 +237,31 @@ async function submitEval() {
   const comment = document.getElementById('eval-comment').value.trim() || null;
   const btn = document.getElementById('eval-submit');
   btn.disabled = true; btn.textContent = '送信中...';
-
-  await sb.from('reviews').insert({
-    novel_id: selectedNovel.id,
-    user_id: currentUser.id,
-    rating: evalSel,
-    is_completed: true,
-    comment,
-  });
-
+  await sb.from('reviews').insert({ novel_id: selectedNovel.id, user_id: currentUser.id, rating: evalSel, is_completed: true, comment });
   await updateBayesScore(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   await showDone();
 }
 
-// ベイズスコア更新
 async function updateBayesScore(novelId) {
   const { data: reviews } = await sb.from('reviews').select('rating').eq('novel_id', novelId);
   if (!reviews || reviews.length === 0) return;
   const total = reviews.length;
   const good = reviews.filter(r => r.rating === 'good').length;
-  // ベイズ推定: 全体平均0.65を事前分布として使用（仮想サンプル数10）
   const prior = 0.65, priorN = 10;
   const bayesScore = (good + prior * priorN) / (total + priorN);
-  // 30%以下なら非表示
   const isVisible = bayesScore >= 0.3;
   await sb.from('novels').update({ bayes_score: bayesScore, is_visible: isVisible }).eq('id', novelId);
 }
 
-// 完了画面
 async function showDone() {
-  // 読了の場合は作者リンクを表示
   const links = document.getElementById('done-links');
   links.innerHTML = '';
   if (evalSel && selectedNovel) {
-    if (selectedNovel.narou_url) {
-      links.innerHTML += '<a href="' + selectedNovel.narou_url + '" target="_blank" class="done-link">なろうで続きを読む →</a>';
-    }
-    if (selectedNovel.kakuyomu_url) {
-      links.innerHTML += '<a href="' + selectedNovel.kakuyomu_url + '" target="_blank" class="done-link">カクヨムで続きを読む →</a>';
-    }
-    if (selectedNovel.x_url) {
-      links.innerHTML += '<a href="' + selectedNovel.x_url + '" target="_blank" class="done-link">作者のXを見る →</a>';
-    }
+    if (selectedNovel.narou_url) links.innerHTML += '<a href="' + selectedNovel.narou_url + '" target="_blank" class="done-link">なろうで続きを読む →</a>';
+    if (selectedNovel.kakuyomu_url) links.innerHTML += '<a href="' + selectedNovel.kakuyomu_url + '" target="_blank" class="done-link">カクヨムで続きを読む →</a>';
+    if (selectedNovel.x_url) links.innerHTML += '<a href="' + selectedNovel.x_url + '" target="_blank" class="done-link">作者のXを見る →</a>';
   }
-  // リセット
   bailEvalSel = null; reasonSel = null; evalSel = null;
   document.getElementById('bail-comment').value = '';
   document.getElementById('eval-comment').value = '';
