@@ -1,0 +1,44 @@
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) window.location.href = 'index.html';
+})();
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+  if (!email || !password) { errEl.textContent = 'メールアドレスとパスワードを入力してください'; return; }
+  btn.disabled = true; btn.textContent = 'ログイン中...'; errEl.textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = 'メールアドレスまたはパスワードが間違っています'; btn.disabled = false; btn.textContent = 'ログイン'; return; }
+  window.location.href = 'index.html';
+}
+
+async function register() {
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const password2 = document.getElementById('reg-password2').value;
+  const errEl = document.getElementById('reg-err');
+  const btn = document.getElementById('reg-btn');
+  if (!email || !password || !password2) { errEl.textContent = 'すべての項目を入力してください'; return; }
+  if (password.length < 8) { errEl.textContent = 'パスワードは8文字以上にしてください'; return; }
+  if (password !== password2) { errEl.textContent = 'パスワードが一致しません'; return; }
+  btn.disabled = true; btn.textContent = '登録中...'; errEl.textContent = '';
+  const { error } = await sb.auth.signUp({ email, password });
+  if (error) { errEl.textContent = '登録に失敗しました：' + error.message; btn.disabled = false; btn.textContent = '新規登録'; return; }
+  document.getElementById('panel-register').innerHTML = '<div class="success-msg"><div class="success-icon">✉️</div><div class="success-title">確認メールを送信しました</div><div class="success-sub">' + email + ' に届いたメールのリンクをクリックして登録を完了してください</div></div>';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const panel = document.querySelector('.tab-panel.active');
+  if (panel.id === 'panel-login') login(); else register();
+});
