@@ -39,6 +39,37 @@
     .copy-edit-wrap input{flex:1;padding:7px 12px;border:0.5px solid var(--acc2);border-radius:8px;font-size:13px;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);}
     .copy-save{padding:6px 14px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;}
     .copy-cancel{padding:6px 14px;background:none;border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink3);cursor:pointer;}
+    .novel-block{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+    .novel-head{padding:16px 18px 14px;border-bottom:0.5px solid var(--border);}
+    .reviews-section{border-top:0;}
+    .review-page{display:none;}
+    .review-page.active{display:block;}
+    .review-item{padding:14px 18px;border-bottom:0.5px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+    .review-item:last-child{border-bottom:none;}
+    .rating-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+    .r-good{background:#f2faf6;color:#4a9b6f;}
+    .r-mid{background:var(--acc3);color:var(--acc);}
+    .r-bad{background:#fdf2ef;color:#b85a42;}
+    .review-body{flex:1;}
+    .review-comment{font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:3px;}
+    .review-meta{font-size:10px;color:var(--ink3);}
+    .bail-tag{font-size:10px;color:var(--ink3);background:var(--bg);border-radius:4px;padding:1px 6px;margin-left:4px;}
+    .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-top:0.5px solid var(--border);}
+    .page-btn{background:none;border:0.5px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--ink3);transition:all .15s;}
+    .page-btn:hover{border-color:var(--acc2);color:var(--acc);}
+    .page-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .page-info{font-size:12px;color:var(--ink3);}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .stat{background:var(--bg);border-radius:8px;padding:10px;text-align:center;}
+    .stat-n{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--acc);}
+    .stat-l{font-size:10px;color:var(--ink3);margin-top:2px;}
+    .eval-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:12px 0 6px;}
+    .bar-g{background:#7db89a;}
+    .bar-m{background:#c4956a;}
+    .bar-b{background:#d49080;}
+    .legend{display:flex;gap:12px;}
+    .leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);}
+    .dot{width:7px;height:7px;border-radius:50%;}
     .section-mini{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;}
   </style>
 </head>
