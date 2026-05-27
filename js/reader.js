@@ -7,13 +7,11 @@ let bailEvalSel = null;
 let reasonSel = null;
 let evalSel = null;
 
-// 初期化
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
   currentUser = session.user;
 
-  // 読書ロック確認
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
   if (lock) {
     const { data: novel } = await sb.from('novels').select('*').eq('id', lock.novel_id).single();
@@ -25,7 +23,6 @@ let evalSel = null;
     }
   }
 
-  // スキップ残数取得
   const today = new Date().toISOString().split('T')[0];
   const { data: skipData } = await sb.from('skips').select('count').eq('user_id', currentUser.id).eq('skip_date', today).single();
   if (skipData) skipLeft = Math.max(0, 3 - skipData.count);
@@ -50,13 +47,12 @@ async function startSearch() {
 async function loadCards() {
   const cardsRow = document.getElementById('cards-row');
   cardsRow.innerHTML = '<div class="loading">読み込み中...</div>';
-  document.getElementById('read-btn').disabled = true;
   document.getElementById('skip-row').style.display = 'flex';
+  document.getElementById('back-btn').style.display = 'none';
   selectedNovel = null;
   novelA = null;
   novelB = null;
 
-  // 選択ジャンル・文字数
   const selGenres = [...document.querySelectorAll('#s-setup .tag.sel')].map(t => t.textContent).filter(t => !['〜1万字','1〜5万字','5〜15万字','15万字〜'].includes(t));
   const selSizes = [...document.querySelectorAll('#s-setup .tag.sel')].map(t => t.textContent).filter(t => ['〜1万字','1〜5万字','5〜15万字','15万字〜'].includes(t));
   const evalMin = parseInt(document.getElementById('eval-min').value) || 0;
@@ -66,10 +62,10 @@ async function loadCards() {
   if (selSizes.length > 0) {
     charMin = 9999999; charMax = 0;
     selSizes.forEach(s => {
-      if (s === '〜1万字')    { charMin = Math.min(charMin, 0);      charMax = Math.max(charMax, 10000); }
-      if (s === '1〜5万字')   { charMin = Math.min(charMin, 10001);  charMax = Math.max(charMax, 50000); }
-      if (s === '5〜15万字')  { charMin = Math.min(charMin, 50001);  charMax = Math.max(charMax, 150000); }
-      if (s === '15万字〜')   { charMin = Math.min(charMin, 150001); charMax = Math.max(charMax, 9999999); }
+      if (s === '〜1万字')    { charMin = Math.min(charMin,0);      charMax = Math.max(charMax,10000); }
+      if (s === '1〜5万字')   { charMin = Math.min(charMin,10001);  charMax = Math.max(charMax,50000); }
+      if (s === '5〜15万字')  { charMin = Math.min(charMin,50001);  charMax = Math.max(charMax,150000); }
+      if (s === '15万字〜')   { charMin = Math.min(charMin,150001); charMax = Math.max(charMax,9999999); }
     });
   }
 
@@ -82,29 +78,28 @@ async function loadCards() {
   const maxScore = Math.min(100, (evalMax + 5)) / 100;
   query = query.gte('bayes_score', minScore).lte('bayes_score', maxScore);
 
-  // 自分が読んだ・スキップした作品を除外
   const { data: readNovels } = await sb.from('reviews').select('novel_id').eq('user_id', currentUser.id);
   const readIds = readNovels ? readNovels.map(r => r.novel_id) : [];
   if (readIds.length > 0) query = query.not('id', 'in', '(' + readIds.join(',') + ')');
 
   const { data: novels } = await query.limit(20);
 
-  // 2件未満 → 条件設定に戻るボタンを表示
   if (!novels || novels.length < 2) {
-    cardsRow.innerHTML = '<div class="no-novels" style="grid-column:1/-1">条件に合う作品が見つかりませんでした。<br>条件を変えて試してみてください。</div>';
+    cardsRow.innerHTML = '<div class="no-novels">条件に合う作品が見つかりませんでした。<br>条件を変えて試してみてください。</div>';
     document.getElementById('skip-row').style.display = 'none';
-    document.getElementById('read-btn').style.display = 'none';
     document.getElementById('back-btn').style.display = 'block';
     return;
   }
 
-  // 通常表示に戻す
-  document.getElementById('read-btn').style.display = 'block';
   document.getElementById('back-btn').style.display = 'none';
 
   const shuffled = novels.sort(() => Math.random() - 0.5);
   novelA = shuffled[0];
   novelB = shuffled[1];
+
+  // 表示回数を記録
+  await recordShown(novelA.id);
+  await recordShown(novelB.id);
 
   cardsRow.innerHTML = '';
   cardsRow.appendChild(makeCard(novelA, 'A'));
@@ -122,7 +117,8 @@ function makeCard(novel, which) {
     '<div class="c-title">' + escHtml(novel.title) + '</div>' +
     '<div class="c-copy">' + escHtml(novel.catchcopy) + '</div>' +
     '<div class="c-meta"><span>♥ ' + pct + '%</span><span>完結</span></div>';
-  div.onclick = () => selCard(which, novel);
+  // タップしたら即読む画面へ
+  div.onclick = () => goReadDirect(which, novel);
   return div;
 }
 
@@ -130,26 +126,49 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function selCard(which, novel) {
-  document.getElementById('card-A') && document.getElementById('card-A').classList.remove('sel');
-  document.getElementById('card-B') && document.getElementById('card-B').classList.remove('sel');
-  document.getElementById('card-' + which).classList.add('sel');
+async function goReadDirect(which, novel) {
   selectedNovel = novel;
-  document.getElementById('read-btn').disabled = false;
-}
-
-async function goRead() {
-  if (!selectedNovel) return;
-  await sb.from('reading_lock').upsert({ user_id: currentUser.id, novel_id: selectedNovel.id });
-  await recordStats(selectedNovel.id, novelA.id, novelB.id);
-  renderReadScreen(selectedNovel);
+  // 選ばれた・選ばれなかったを記録
+  await recordChosen(novel.id);
+  const notChosenNovel = which === 'A' ? novelB : novelA;
+  if (notChosenNovel) await recordNotChosen(notChosenNovel.id);
+  // 読書ロック
+  await sb.from('reading_lock').upsert({ user_id: currentUser.id, novel_id: novel.id });
+  renderReadScreen(novel);
   goTo('s-read');
 }
 
-async function recordStats(chosenId, aId, bId) {
-  await sb.rpc('increment_chosen', { p_novel_id: chosenId }).catch(() => {});
-  const notChosenId = chosenId === aId ? bId : aId;
-  await sb.rpc('increment_not_chosen', { p_novel_id: notChosenId }).catch(() => {});
+// 表示回数記録
+async function recordShown(novelId) {
+  const { data } = await sb.from('novel_stats').select('novel_id').eq('novel_id', novelId).single();
+  if (data) {
+    await sb.from('novel_stats').update({ shown_count: sb.rpc ? undefined : 0 }).eq('novel_id', novelId);
+    // RPC使わず直接更新
+    const { data: cur } = await sb.from('novel_stats').select('shown_count').eq('novel_id', novelId).single();
+    await sb.from('novel_stats').update({ shown_count: (cur.shown_count || 0) + 1, updated_at: new Date().toISOString() }).eq('novel_id', novelId);
+  } else {
+    await sb.from('novel_stats').insert({ novel_id: novelId, shown_count: 1, chosen_count: 0, not_chosen_count: 0 });
+  }
+}
+
+// 選ばれた回数記録
+async function recordChosen(novelId) {
+  const { data: cur } = await sb.from('novel_stats').select('chosen_count').eq('novel_id', novelId).single();
+  if (cur) {
+    await sb.from('novel_stats').update({ chosen_count: (cur.chosen_count || 0) + 1, updated_at: new Date().toISOString() }).eq('novel_id', novelId);
+  } else {
+    await sb.from('novel_stats').insert({ novel_id: novelId, shown_count: 1, chosen_count: 1, not_chosen_count: 0 });
+  }
+}
+
+// 選ばれなかった回数記録
+async function recordNotChosen(novelId) {
+  const { data: cur } = await sb.from('novel_stats').select('not_chosen_count').eq('novel_id', novelId).single();
+  if (cur) {
+    await sb.from('novel_stats').update({ not_chosen_count: (cur.not_chosen_count || 0) + 1, updated_at: new Date().toISOString() }).eq('novel_id', novelId);
+  } else {
+    await sb.from('novel_stats').insert({ novel_id: novelId, shown_count: 1, chosen_count: 0, not_chosen_count: 1 });
+  }
 }
 
 function renderReadScreen(novel) {
@@ -189,13 +208,11 @@ async function doSkip() {
 }
 
 function backToSetup() {
-  document.getElementById('read-btn').style.display = 'block';
   document.getElementById('back-btn').style.display = 'none';
   document.getElementById('skip-row').style.display = 'flex';
   goTo('s-setup');
 }
 
-// 途中離脱
 function selBailEval(el, key) {
   document.querySelectorAll('#bail-eval-grp .eval-opt').forEach(b => b.classList.remove('sel-good','sel-mid','sel-bad'));
   el.classList.add('sel-' + key);
@@ -225,7 +242,6 @@ async function submitBail() {
   await showDone();
 }
 
-// 評価
 function selEval(el, key) {
   document.querySelectorAll('#eval-grp .eval-opt').forEach(b => b.classList.remove('sel-good','sel-mid','sel-bad'));
   el.classList.add('sel-' + key);
