@@ -1,5 +1,5 @@
 // 管理者のuser IDをここに設定（後でSupabaseのAuthページで確認してください）
-const ADMIN_IDS = [];
+const ADMIN_IDS = ['d425963b-9609-4272-9fce-5a22b52bf08b'];
 
 let currentUser = null;
 
