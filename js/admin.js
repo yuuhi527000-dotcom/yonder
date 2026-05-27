@@ -64,7 +64,7 @@ function setSort(key) {
   renderNovels();
 }
 
-function renderNovels() {
+async function renderNovels() {
   const el = document.getElementById('novels-table');
 
   if (!allNovels || allNovels.length === 0) {
