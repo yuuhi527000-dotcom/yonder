@@ -70,7 +70,7 @@ async function loadNovels() {
         ${novels.map(n => `
           <tr id="novel-row-${n.id}">
             <td>
-              <div class="novel-title-cell">${escHtml(n.title)}</div>
+              <div class="novel-title-cell" style="cursor:pointer;color:var(--acc);" onclick="viewNovel('${n.id}')">${escHtml(n.title)}</div>
               <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${escHtml(n.catchcopy)}</div>
             </td>
             <td>${n.genre || '—'}</td>
@@ -178,4 +178,37 @@ async function handleReport(reportId, novelId, action) {
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function viewNovel(id) {
+  const { data: novel } = await sb.from('novels').select('*').eq('id', id).single();
+  if (!novel) return;
+
+  let modal = document.getElementById('novel-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'novel-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    document.body.appendChild(modal);
+  }
+
+  const parts = novel.body.split('---CHAPTER---');
+  const bodyHTML = parts.map((part, i) =>
+    (i > 0 ? '<div style="text-align:center;color:#a08060;margin:20px 0;font-size:13px;">― 章 ―</div>' : '') +
+    part.split('\n').map(l => '<p style="margin-bottom:.7em;font-size:14px;line-height:2;color:#2c1f14;">' + escHtml(l) + '</p>').join('')
+  ).join('');
+
+  modal.innerHTML = \`
+    <div style="background:#faf8f5;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="padding:16px 20px;border-bottom:0.5px solid #e8ddd3;display:flex;align-items:center;justify-content:space-between;background:#fff;">
+        <div>
+          <div style="font-family:'Noto Serif JP',serif;font-size:16px;font-weight:500;color:#2c1f14;">\${escHtml(novel.title)}</div>
+          <div style="font-size:12px;color:#a08060;margin-top:2px;">\${escHtml(novel.catchcopy)}</div>
+        </div>
+        <button onclick="document.getElementById('novel-modal').remove()" style="background:none;border:0.5px solid #e8ddd3;border-radius:8px;padding:6px 12px;font-size:12px;color:#a08060;cursor:pointer;">閉じる</button>
+      </div>
+      <div style="padding:20px;overflow-y:auto;flex:1;">\${bodyHTML}</div>
+    </div>
+  \`;
 }
