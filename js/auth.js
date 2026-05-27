@@ -42,3 +42,32 @@ document.addEventListener('keydown', (e) => {
   const panel = document.querySelector('.tab-panel.active');
   if (panel.id === 'panel-login') login(); else register();
 });
+
+function showReset() {
+  document.getElementById('panel-login').style.display = 'none';
+  document.getElementById('panel-reset').style.display = 'block';
+  document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
+}
+
+function hideReset() {
+  document.getElementById('panel-reset').style.display = 'none';
+  document.getElementById('panel-login').style.display = 'block';
+  document.querySelectorAll('.tabs').forEach(t => t.style.display = 'flex');
+}
+
+async function sendReset() {
+  const email = document.getElementById('reset-email').value.trim();
+  const errEl = document.getElementById('reset-err');
+  const btn = document.getElementById('reset-btn');
+  if (!email) { errEl.textContent = 'メールアドレスを入力してください'; return; }
+  btn.disabled = true; btn.textContent = '送信中...'; errEl.textContent = '';
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset-password.html'
+  });
+  if (error) {
+    errEl.textContent = '送信に失敗しました。メールアドレスを確認してください。';
+    btn.disabled = false; btn.textContent = 'リセットメールを送信';
+    return;
+  }
+  document.getElementById('panel-reset').innerHTML = '<div class="success-msg"><div class="success-icon">✉️</div><div class="success-title">メールを送信しました</div><div class="success-sub">' + email + ' にリセット用リンクを送りました。<br>メールを確認してください。</div></div>';
+}
