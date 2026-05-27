@@ -144,6 +144,7 @@
     <div class="read-hdr">
       <div class="read-title-txt" id="read-title"></div>
       <button class="bail-btn" onclick="goTo('s-bail')">途中離脱</button>
+      <button class="bail-btn" onclick="goTo('s-report')" style="border-color:var(--border);color:var(--ink3);margin-left:6px;">通報</button>
     </div>
     <div class="prog-wrap"><div class="prog-track"><div class="prog-bar" id="prog-bar"></div></div></div>
     <div class="read-body" id="read-body" onscroll="updProg()"></div>
@@ -186,6 +187,23 @@
     <div class="comment-label">コメント<span class="opt-badge">任意</span></div>
     <textarea id="eval-comment" placeholder="作者さんへひとこと（作者のみ閲覧）"></textarea>
     <button class="main-btn" id="eval-submit" onclick="submitEval()" disabled>評価を送信する</button>
+  </div>
+
+  <div id="s-report" class="screen">
+    <div style="padding:22px 18px 32px">
+      <div class="section-head">この作品を通報する</div>
+      <div class="section-sub">規約違反の内容を運営者に報告します</div>
+      <div class="sec-label" style="margin-bottom:9px">通報理由</div>
+      <div class="reason-group" id="report-reason-grp">
+        <button class="reason-btn" onclick="selReportReason(this,'copyright')"><div><div class="reason-txt">著作権侵害</div><div class="reason-sub">自分または他者の作品が無断掲載されている</div></div></button>
+        <button class="reason-btn" onclick="selReportReason(this,'inappropriate')"><div><div class="reason-txt">不適切な内容</div><div class="reason-sub">規約違反・ヘイト・過激な表現が含まれる</div></div></button>
+        <button class="reason-btn" onclick="selReportReason(this,'other')"><div><div class="reason-txt">その他</div></div></button>
+      </div>
+      <div class="comment-label">詳細コメント<span class="opt-badge">任意</span></div>
+      <textarea id="report-comment" placeholder="詳しい内容があれば記入してください"></textarea>
+      <button class="main-btn" id="report-submit" onclick="submitReport()" disabled>通報する</button>
+      <button class="main-btn" onclick="goTo('s-read')" style="margin-top:8px;background:none;border:0.5px solid var(--border);color:var(--ink3);">キャンセル</button>
+    </div>
   </div>
 
   <div id="s-done" class="screen">

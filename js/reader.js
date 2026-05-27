@@ -287,3 +287,33 @@ async function showDone() {
   document.getElementById('bail-submit').disabled = true;
   goTo('s-done');
 }
+
+// 通報
+let reportReasonSel = null;
+
+function selReportReason(el, key) {
+  document.querySelectorAll('#report-reason-grp .reason-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  reportReasonSel = key;
+  document.getElementById('report-submit').disabled = false;
+}
+
+async function submitReport() {
+  if (!reportReasonSel || !selectedNovel) return;
+  const comment = document.getElementById('report-comment').value.trim() || null;
+  const btn = document.getElementById('report-submit');
+  btn.disabled = true; btn.textContent = '送信中...';
+  await sb.from('reports').insert({
+    novel_id: selectedNovel.id,
+    user_id: currentUser.id,
+    reason: reportReasonSel,
+    comment,
+    status: 'pending'
+  });
+  reportReasonSel = null;
+  document.getElementById('report-comment').value = '';
+  document.querySelectorAll('#report-reason-grp .reason-btn').forEach(b => b.classList.remove('sel'));
+  btn.disabled = true; btn.textContent = '通報する';
+  alert('通報を受け付けました。ご協力ありがとうございます。');
+  goTo('s-read');
+}

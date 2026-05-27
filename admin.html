@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonder - 管理者画面</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .container{max-width:900px;margin:0 auto;padding:24px 20px 80px;}
+    .page-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:6px;}
+    .page-sub{font-size:12px;color:var(--ink3);margin-bottom:24px;}
+    .tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:24px;}
+    .tab{padding:10px 18px;font-size:13px;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;}
+    .tab:hover{color:var(--acc);}
+    .tab.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:500;}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}
+    .stat-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+    .stat-n{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:500;color:var(--acc);}
+    .stat-l{font-size:11px;color:var(--ink3);margin-top:4px;letter-spacing:.05em;}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;border:0.5px solid var(--border);}
+    th{padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;border-bottom:0.5px solid var(--border);text-align:left;background:var(--bg);}
+    td{padding:12px 14px;font-size:13px;color:var(--ink);border-bottom:0.5px solid var(--border);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--bg);}
+    .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+    .badge-good{background:#f2faf6;color:#4a9b6f;}
+    .badge-mid{background:var(--acc3);color:var(--acc);}
+    .badge-bad{background:#fdf2ef;color:#b85a42;}
+    .badge-hidden{background:#f0f0f0;color:#888;}
+    .badge-report{background:#fdf2ef;color:#b85a42;}
+    .action-btn{background:none;border:0.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--ink3);cursor:pointer;transition:all .15s;margin-right:4px;}
+    .action-btn:hover{border-color:var(--acc2);color:var(--acc);}
+    .action-btn.danger{border-color:#f0c4b4;color:#b85a42;}
+    .action-btn.danger:hover{background:#fdf2ef;}
+    .action-btn.success{border-color:#a8d5b5;color:#4a9b6f;}
+    .action-btn.success:hover{background:#f2faf6;}
+    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .report-reason{font-size:11px;color:var(--ink3);margin-top:2px;}
+    .novel-title-cell{font-family:'Noto Serif JP',serif;font-weight:500;}
+    .score-cell{font-size:13px;font-weight:500;}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Yonder<span>ADMIN</span></a>
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">読む</a>
+      <a href="post.html" class="nav-tab">投稿する</a>
+      <a href="dashboard.html" class="nav-tab">ダッシュボード</a>
+      <a href="admin.html" class="nav-tab active">管理</a>
+      <button class="nav-tab logout" onclick="logout()">ログアウト</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-title">管理者画面</div>
+    <div class="page-sub">サービス全体の管理・モデレーションを行います</div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-n" id="s-users">-</div><div class="stat-l">総ユーザー数</div></div>
+      <div class="stat-card"><div class="stat-n" id="s-novels">-</div><div class="stat-l">総投稿数</div></div>
+      <div class="stat-card"><div class="stat-n" id="s-reviews">-</div><div class="stat-l">総評価数</div></div>
+      <div class="stat-card"><div class="stat-n" id="s-reports">-</div><div class="stat-l">未対応通報</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('novels')">作品一覧</button>
+      <button class="tab" onclick="switchTab('reports')">通報一覧</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-novels">
+      <div id="novels-table"><div class="loading">読み込み中...</div></div>
+    </div>
+
+    <div class="tab-panel" id="panel-reports">
+      <div id="reports-table"><div class="loading">読み込み中...</div></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
