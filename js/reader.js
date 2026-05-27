@@ -199,11 +199,7 @@ function updProg() {
 }
 
 async function doSkip() {
-  if (skipLeft <= 0) { alert('本日のスキップ回数を使い切りました'); return; }
-  skipLeft--;
-  document.getElementById('skip-ct').textContent = 'スキップ残り ' + skipLeft + '回';
-  const today = new Date().toISOString().split('T')[0];
-  await sb.from('skips').upsert({ user_id: currentUser.id, skip_date: today, count: 3 - skipLeft }, { onConflict: 'user_id,skip_date' });
+  // αバージョンはスキップ無制限
   await loadCards();
 }
 
