@@ -2,93 +2,148 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yonder - ダッシュボード</title>
+  <title>Yonder - 統計</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .container{max-width:720px;margin:0 auto;padding:24px 20px 60px;}
-    .page-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:6px;}
-    .page-sub{font-size:12px;color:var(--ink3);margin-bottom:28px;}
-    .novel-card{background:#fff;border:0.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
-    .novel-title{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:500;color:var(--ink);margin-bottom:4px;}
-    .novel-copy{font-size:12px;color:var(--ink3);margin-bottom:16px;}
-    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
-    .stat-box{background:var(--bg);border-radius:10px;padding:12px;text-align:center;}
-    .stat-num{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;color:var(--acc);}
-    .stat-label{font-size:10px;color:var(--ink3);margin-top:3px;letter-spacing:.05em;}
-    .eval-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;}
-    .bar-good{background:#7db89a;}
-    .bar-mid{background:#c4956a;}
-    .bar-bad{background:#d49080;}
-    .eval-legend{display:flex;gap:14px;}
-    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);}
-    .legend-dot{width:8px;height:8px;border-radius:50%;}
-    .divider{height:0.5px;background:var(--border);margin:14px 0;}
-    .bail-list{display:flex;flex-direction:column;gap:6px;}
-    .bail-item{font-size:12px;color:var(--ink2);padding:8px 12px;background:var(--bg);border-radius:8px;line-height:1.6;}
-    .bail-reason{font-size:10px;color:var(--ink3);margin-top:2px;}
-    .score-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
-    .score-high{background:#f0faf5;color:#4a9b6f;}
-    .score-mid{background:var(--acc3);color:var(--acc);}
-    .score-low{background:#fdf2ef;color:#b85a42;}
-    .empty{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
-    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
-    .edit-copy{background:none;border:0.5px solid var(--border);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--ink3);cursor:pointer;margin-left:8px;transition:all .15s;}
-    .edit-copy:hover{border-color:var(--acc2);color:var(--acc);}
-    .copy-edit-wrap{display:flex;align-items:center;gap:8px;margin-top:6px;}
-    .copy-edit-wrap input{flex:1;padding:7px 12px;border:0.5px solid var(--acc2);border-radius:8px;font-size:13px;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--ink);}
-    .copy-save{padding:6px 14px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;}
-    .copy-cancel{padding:6px 14px;background:none;border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink3);cursor:pointer;}
-    .novel-block{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
-    .novel-head{padding:16px 18px 14px;border-bottom:0.5px solid var(--border);}
-    .reviews-section{border-top:0;}
-    .review-page{display:none;}
-    .review-page.active{display:block;}
-    .review-item{padding:14px 18px;border-bottom:0.5px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
-    .review-item:last-child{border-bottom:none;}
-    .rating-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
-    .r-good{background:#f2faf6;color:#4a9b6f;}
-    .r-mid{background:var(--acc3);color:var(--acc);}
-    .r-bad{background:#fdf2ef;color:#b85a42;}
-    .review-body{flex:1;}
-    .review-comment{font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:3px;}
-    .review-meta{font-size:10px;color:var(--ink3);}
-    .bail-tag{font-size:10px;color:var(--ink3);background:var(--bg);border-radius:4px;padding:1px 6px;margin-left:4px;}
-    .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-top:0.5px solid var(--border);}
-    .page-btn{background:none;border:0.5px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--ink3);transition:all .15s;}
-    .page-btn:hover{border-color:var(--acc2);color:var(--acc);}
-    .page-btn:disabled{opacity:.3;cursor:not-allowed;}
-    .page-info{font-size:12px;color:var(--ink3);}
-    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-    .stat{background:var(--bg);border-radius:8px;padding:10px;text-align:center;}
-    .stat-n{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:var(--acc);}
-    .stat-l{font-size:10px;color:var(--ink3);margin-top:2px;}
-    .eval-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:12px 0 6px;}
+    html,body{height:100%;margin:0;padding:0;}
+    body{display:flex;flex-direction:column;background:var(--bg);}
+    .main{flex:1;overflow-y:auto;}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;flex-shrink:0;}
+    .nav-logo{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;color:var(--acc);line-height:1.2;text-decoration:none;}
+    .nav-logo small{font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;}
+    .logout-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;}
+    .logout-btn:hover{border-color:var(--acc2);color:var(--acc);}
+    .tab-bar{display:flex;border-top:0.5px solid var(--border);background:#fff;flex-shrink:0;}
+    .tab-item{flex:1;padding:7px 0 10px;text-align:center;font-size:10px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;font-family:'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:color .15s;}
+    .tab-item i{font-size:20px;}
+    .tab-item.active{color:var(--acc);}
+
+    /* 一覧画面 */
+    #view-list{padding:16px 16px 24px;}
+    #view-detail{padding:16px 16px 24px;display:none;}
+
+    .page-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:500;color:var(--ink);margin-bottom:16px;}
+
+    .novel-row{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;}
+    .novel-row:hover{border-color:var(--acc2);transform:translateX(2px);}
+    .nrl{flex:1;min-width:0;}
+    .nr-title{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .nr-meta{display:flex;gap:8px;}
+    .nr-meta span{font-size:11px;color:var(--ink3);}
+    .nr-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;flex-shrink:0;margin-left:10px;}
+    .nr-badge.good{background:#f2faf6;color:#4a9b6f;}
+    .nr-badge.mid{background:var(--acc3);color:var(--acc);}
+
+    /* 詳細画面 */
+    .back-link{font-size:13px;color:var(--ink3);cursor:pointer;margin-bottom:16px;display:inline-block;transition:color .15s;}
+    .back-link:hover{color:var(--acc);}
+    .detail-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+    .detail-copy{font-size:12px;color:var(--ink3);margin-bottom:4px;}
+    .score-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:#f2faf6;color:#4a9b6f;margin-bottom:16px;}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;}
+    .stat{background:var(--bg);border-radius:10px;padding:12px;text-align:center;}
+    .stat-n{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:500;color:var(--acc);}
+    .stat-l{font-size:10px;color:var(--ink3);margin-top:3px;}
+    .eval-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:14px 0 6px;}
     .bar-g{background:#7db89a;}
     .bar-m{background:#c4956a;}
     .bar-b{background:#d49080;}
-    .legend{display:flex;gap:12px;}
+    .legend{display:flex;gap:12px;margin-bottom:20px;}
     .leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);}
     .dot{width:7px;height:7px;border-radius:50%;}
-    .section-mini{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;}
+
+    .comments-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .comments-title{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink3);text-transform:uppercase;}
+    .page-nav{display:flex;align-items:center;gap:8px;}
+    .page-btn{background:none;border:0.5px solid var(--border);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--ink3);transition:all .15s;}
+    .page-btn:hover{border-color:var(--acc2);color:var(--acc);}
+    .page-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .page-info{font-size:11px;color:var(--ink3);}
+    .review-item{padding:12px 0;border-bottom:0.5px solid var(--border);display:flex;gap:10px;align-items:flex-start;}
+    .review-item:last-child{border-bottom:none;}
+    .r-badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+    .r-good{background:#f2faf6;color:#4a9b6f;}
+    .r-mid{background:var(--acc3);color:var(--acc);}
+    .r-bad{background:#fdf2ef;color:#b85a42;}
+    .r-body{}
+    .r-comment{font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:3px;}
+    .r-meta{font-size:10px;color:var(--ink3);}
+    .bail-tag{font-size:10px;color:var(--ink3);background:var(--bg);border-radius:4px;padding:1px 6px;margin-left:4px;}
+    .delete-btn{width:100%;margin-top:24px;padding:12px;background:none;border:0.5px solid #f0c4b4;border-radius:var(--r);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;color:#b85a42;cursor:pointer;transition:all .15s;}
+    .delete-btn:hover{background:#fdf0ec;}
+
+    /* リンク設定 */
+    .section-divider{height:0.5px;background:var(--border);margin:24px 0;}
+    .section-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink3);text-transform:uppercase;margin-bottom:4px;}
+    .section-hint{font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.7;}
+    .link-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .link-label{font-size:12px;color:var(--ink3);width:80px;flex-shrink:0;display:flex;align-items:center;gap:5px;}
+    .link-inp{flex:1;padding:9px 12px;border:0.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;transition:border-color .15s;}
+    .link-inp:focus{outline:none;border-color:var(--acc2);}
+    .link-inp.valid{border-color:#7db89a;background:#f2faf6;}
+    .link-inp.invalid{border-color:#d49080;}
+    .link-hint{font-size:10px;color:var(--ink3);margin-bottom:8px;padding-left:90px;}
+    .save-btn{width:100%;padding:13px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s;margin-top:4px;}
+    .save-btn:hover{opacity:.88;}
+    .save-note{font-size:11px;color:var(--ink3);text-align:center;margin-top:8px;}
+    .err{font-size:12px;color:#b85a42;margin-bottom:10px;min-height:18px;}
+    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .empty{text-align:center;padding:40px 20px;font-size:13px;color:var(--ink3);line-height:1.8;}
   </style>
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html" class="nav-logo">Yonder<span>COMPLETED NOVELS ONLY</span></a>
-    <div class="nav-tabs">
-      <a href="index.html" class="nav-tab">読む</a>
-      <a href="post.html" class="nav-tab">投稿する</a>
-      <a href="dashboard.html" class="nav-tab active">ダッシュボード</a>
-      <button class="nav-tab logout" onclick="logout()">ログアウト</button>
-    </div>
+    <a href="index.html" class="nav-logo">Yonder<small>COMPLETED NOVELS ONLY</small></a>
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
   </nav>
 
-  <div class="container">
-    <div class="page-title">ダッシュボード</div>
-    <div class="page-sub">あなたの作品のパフォーマンスを確認できます</div>
-    <div id="novels-list"><div class="loading">読み込み中...</div></div>
+  <div class="main">
+    <!-- 一覧 -->
+    <div id="view-list">
+      <div class="page-title">あなたの作品</div>
+      <div id="novels-list"><div class="loading">読み込み中...</div></div>
+
+      <div class="section-divider"></div>
+      <div class="section-label">リンク設定</div>
+      <div class="section-hint">投稿時の初期値として使われます。読了後に読者へ表示されます。</div>
+
+      <div class="link-row">
+        <div class="link-label"><i class="ti ti-pencil" style="font-size:14px" aria-hidden="true"></i>なろう</div>
+        <input class="link-inp" type="url" id="link-narou" placeholder="https://ncode.syosetu.com/...">
+      </div>
+      <div class="link-hint">ncode.syosetu.com または novel18.syosetu.com のみ</div>
+
+      <div class="link-row">
+        <div class="link-label"><i class="ti ti-feather" style="font-size:14px" aria-hidden="true"></i>カクヨム</div>
+        <input class="link-inp" type="url" id="link-kakuyomu" placeholder="https://kakuyomu.jp/...">
+      </div>
+      <div class="link-hint">kakuyomu.jp のみ</div>
+
+      <div class="link-row">
+        <div class="link-label"><i class="ti ti-brand-x" style="font-size:14px" aria-hidden="true"></i>X</div>
+        <input class="link-inp" type="url" id="link-x" placeholder="https://x.com/...">
+      </div>
+      <div class="link-hint">x.com または twitter.com のみ</div>
+
+      <div class="err" id="link-err"></div>
+      <button class="save-btn" onclick="saveLinks()">リンクを保存する</button>
+      <div class="save-note">投稿済みの作品には反映されません</div>
+    </div>
+
+    <!-- 詳細 -->
+    <div id="view-detail">
+      <span class="back-link" onclick="showList()">作品一覧に戻る</span>
+      <div id="detail-content"><div class="loading">読み込み中...</div></div>
+    </div>
   </div>
+
+  <nav class="tab-bar">
+    <button class="tab-item" onclick="location.href='index.html'"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
+    <button class="tab-item" onclick="location.href='post.html'"><i class="ti ti-upload" aria-hidden="true"></i>投稿</button>
+    <button class="tab-item active"><i class="ti ti-chart-bar" aria-hidden="true"></i>統計</button>
+  </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
