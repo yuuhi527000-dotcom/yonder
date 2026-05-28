@@ -1,0 +1,1 @@
+ALTER TABLE novels ADD COLUMN IF NOT EXISTS pen_name TEXT;

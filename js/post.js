@@ -177,6 +177,7 @@ async function submitNovel() {
 
   const title = document.getElementById('inp-title').value.trim();
   const catchcopy = document.getElementById('inp-copy').value.trim();
+  const pen_name = document.getElementById('inp-penname').value.trim() || null;
   const narou_url = document.getElementById('inp-narou').value.trim() || null;
   const kakuyomu_url = document.getElementById('inp-kakuyomu').value.trim() || null;
   const x_url = document.getElementById('inp-x').value.trim() || null;
@@ -190,6 +191,7 @@ async function submitNovel() {
     genre: selectedGenre,
     char_count,
     author_id: currentUser.id,
+    pen_name,
     narou_url,
     kakuyomu_url,
     x_url,

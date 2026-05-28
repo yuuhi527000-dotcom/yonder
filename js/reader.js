@@ -386,6 +386,8 @@ async function submitBail() {
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
   evalSel = null;
+  document.getElementById('done-title').textContent = 'フィードバックありがとうございます';
+  document.getElementById('done-sub').textContent = 'あなたの評価が作者に届きます';
   await showDone();
 }
 
@@ -414,6 +416,8 @@ async function submitEval() {
   if (heartSel) await addFavorite(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
+  document.getElementById('done-title').textContent = 'ありがとうございます';
+  document.getElementById('done-sub').textContent = 'あなたの評価が次の作家さんに届きます';
   await showDone();
 }
 
@@ -437,14 +441,30 @@ async function updateBayesScore(novelId) {
 async function showDone() {
   const links = document.getElementById('done-links');
   links.innerHTML = '';
-  if (evalSel && selectedNovel) {
-    if (selectedNovel.narou_url) links.innerHTML += '<a href="'+selectedNovel.narou_url+'" target="_blank" class="done-link">なろうで続きを読む →</a>';
-    if (selectedNovel.kakuyomu_url) links.innerHTML += '<a href="'+selectedNovel.kakuyomu_url+'" target="_blank" class="done-link">カクヨムで続きを読む →</a>';
-    if (selectedNovel.x_url) links.innerHTML += '<a href="'+selectedNovel.x_url+'" target="_blank" class="done-link">作者のXを見る →</a>';
+
+  if (selectedNovel && (selectedNovel.pen_name || selectedNovel.narou_url || selectedNovel.kakuyomu_url || selectedNovel.x_url)) {
+    let html = '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:14px;width:100%;max-width:300px;">';
+    if (selectedNovel.pen_name) {
+      html += '<div style="font-family:Noto Serif JP,serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class=\"ti ti-user\" style=\"font-size:14px;color:var(--acc2)\" aria-hidden=\"true\"></i>' + escHtml(selectedNovel.pen_name) + '</div>';
+    }
+    html += '<div style=\"display:flex;flex-direction:column;gap:7px;\">';
+    if (selectedNovel.narou_url) {
+      html += '<a href=\"' + escHtml(selectedNovel.narou_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-pencil\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">なろうで他の作品を読む</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+    }
+    if (selectedNovel.kakuyomu_url) {
+      html += '<a href=\"' + escHtml(selectedNovel.kakuyomu_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-feather\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">カクヨムで他の作品を読む</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+    }
+    if (selectedNovel.x_url) {
+      html += '<a href=\"' + escHtml(selectedNovel.x_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-brand-x\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">作者のXを見る</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+    }
+    html += '</div></div>';
+    links.innerHTML = html;
   }
+
   resetUI();
   goTo('s-done');
 }
+
 
 function resetUI() {
   bailEvalSel = null; reasonSel = null; evalSel = null; heartSel = false; bailHeartSel = false;
