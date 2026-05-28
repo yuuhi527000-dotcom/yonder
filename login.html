@@ -47,7 +47,21 @@
       <div class="field"><label>パスワード</label><input type="password" id="login-password" placeholder="••••••••"></div>
       <div class="err" id="login-err"></div>
       <button class="submit-btn" id="login-btn" onclick="login()">ログイン</button>
+      <div style="text-align:center;margin-top:12px;">
+        <a href="#" onclick="showReset()" style="font-size:12px;color:var(--ink3);text-decoration:none;">パスワードを忘れた方はこちら</a>
+      </div>
     </div>
+    <div class="tab-panel" id="panel-reset" style="display:none;padding:20px 24px 28px;">
+      <div style="font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px;">パスワードをリセット</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:16px;line-height:1.7;">登録したメールアドレスにリセット用のリンクを送信します</div>
+      <div class="field"><label>メールアドレス</label><input type="email" id="reset-email" placeholder="your@email.com"></div>
+      <div class="err" id="reset-err"></div>
+      <button class="submit-btn" id="reset-btn" onclick="sendReset()">リセットメールを送信</button>
+      <div style="text-align:center;margin-top:12px;">
+        <a href="#" onclick="hideReset()" style="font-size:12px;color:var(--ink3);text-decoration:none;">← ログインに戻る</a>
+      </div>
+    </div>
+
     <div class="tab-panel" id="panel-register">
       <div class="field"><label>メールアドレス</label><input type="email" id="reg-email" placeholder="your@email.com"></div>
       <div class="field"><label>パスワード（8文字以上）</label><input type="password" id="reg-password" placeholder="••••••••"></div>
@@ -55,6 +69,11 @@
       <div class="err" id="reg-err"></div>
       <button class="submit-btn" id="reg-btn" onclick="register()">新規登録</button>
     </div>
+  </div>
+  <div style="text-align:center;margin-top:20px;display:flex;justify-content:center;gap:16px;">
+    <a href="about.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">Yonderとは</a>
+    <a href="terms.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">利用規約</a>
+    <a href="privacy.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">プライバシーポリシー</a>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
