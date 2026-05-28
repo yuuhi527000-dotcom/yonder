@@ -157,6 +157,7 @@ async function renderNovels() {
               <td>
                 <div class="novel-title-cell" style="cursor:pointer;color:var(--acc);" onclick="viewNovel('${n.id}')">${escHtml(n.title)}</div>
                 <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${escHtml(n.catchcopy)}</div>
+                ${n.pen_name ? '<div style="font-size:10px;color:var(--acc2);margin-top:2px;">✍️ ' + escHtml(n.pen_name) + '</div>' : ''}
               </td>
               <td style="font-size:12px">${n.genre || '—'}</td>
               <td style="font-size:12px;white-space:nowrap">${charStr}</td>
