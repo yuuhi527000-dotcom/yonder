@@ -226,20 +226,18 @@ async function viewNovel(id) {
 
   const parts = novel.body.split('---CHAPTER---');
   const bodyHTML = parts.map((part, i) =>
-    (i > 0 ? '<div style="text-align:center;color:#a08060;margin:20px 0;font-size:13px;">― 章 ―</div>' : '') +
+    (i > 0 ? '<div style="text-align:center;color:#a08060;margin:20px 0;font-size:13px;">--- 章 ---</div>' : '') +
     part.split('\n').map(l => '<p style="margin-bottom:.7em;font-size:14px;line-height:2;color:#2c1f14;">' + escHtml(l) + '</p>').join('')
   ).join('');
 
-  modal.innerHTML = \`
-    <div style="background:#faf8f5;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="padding:16px 20px;border-bottom:0.5px solid #e8ddd3;display:flex;align-items:center;justify-content:space-between;background:#fff;">
-        <div>
-          <div style="font-family:'Noto Serif JP',serif;font-size:16px;font-weight:500;color:#2c1f14;">\${escHtml(novel.title)}</div>
-          <div style="font-size:12px;color:#a08060;margin-top:2px;">\${escHtml(novel.catchcopy)}</div>
-        </div>
-        <button onclick="document.getElementById('novel-modal').remove()" style="background:none;border:0.5px solid #e8ddd3;border-radius:8px;padding:6px 12px;font-size:12px;color:#a08060;cursor:pointer;">閉じる</button>
-      </div>
-      <div style="padding:20px;overflow-y:auto;flex:1;">\${bodyHTML}</div>
-    </div>
-  \`;
+  modal.innerHTML = '<div style="background:#faf8f5;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">'
+    + '<div style="padding:16px 20px;border-bottom:0.5px solid #e8ddd3;display:flex;align-items:center;justify-content:space-between;background:#fff;">'
+    + '<div>'
+    + '<div style="font-family:Noto Serif JP,serif;font-size:16px;font-weight:500;color:#2c1f14;">' + escHtml(novel.title) + '</div>'
+    + '<div style="font-size:12px;color:#a08060;margin-top:2px;">' + escHtml(novel.catchcopy) + '</div>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\"novel-modal\").remove()" style="background:none;border:0.5px solid #e8ddd3;border-radius:8px;padding:6px 12px;font-size:12px;color:#a08060;cursor:pointer;">閉じる</button>'
+    + '</div>'
+    + '<div style="padding:20px;overflow-y:auto;flex:1;">' + bodyHTML + '</div>'
+    + '</div>';
 }
