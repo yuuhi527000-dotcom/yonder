@@ -6,8 +6,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    body{display:flex;align-items:center;justify-content:center;padding:20px;}
-    .card{width:100%;max-width:400px;background:#fff;border:0.5px solid var(--border);border-radius:20px;overflow:hidden;}
+    body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;min-height:100vh;}
+    .card{width:100%;max-width:400px;background:#fff;border:0.5px solid var(--border);border-radius:20px;overflow:hidden;box-sizing:border-box;}
     .card-head{padding:28px 24px 0;text-align:center;}
     .logo{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;color:var(--acc);}
     .logo-sub{font-size:11px;color:var(--ink3);letter-spacing:.15em;margin-top:4px;}
@@ -70,10 +70,11 @@
       <button class="submit-btn" id="reg-btn" onclick="register()">新規登録</button>
     </div>
   </div>
-  <div style="text-align:center;margin-top:20px;display:flex;justify-content:center;gap:16px;">
+  <div style="text-align:center;margin-top:20px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:0 20px;">
     <a href="about.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">Yonderとは</a>
     <a href="terms.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">利用規約</a>
     <a href="privacy.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">プライバシーポリシー</a>
+    <a href="contact.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">お問い合わせ</a>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
