@@ -25,3 +25,14 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
   .container { padding: 16px 14px 60px; }
   .read-body { font-size: 14px; }
 }
+
+/* なろう記法 */
+ruby { ruby-align: center; }
+rt { font-size: .5em; color: var(--ink3); }
+em.boten {
+  font-style: normal;
+  -webkit-text-emphasis: filled circle;
+  text-emphasis: filled circle;
+  -webkit-text-emphasis-position: over right;
+  text-emphasis-position: over right;
+}

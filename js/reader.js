@@ -184,6 +184,23 @@ function makeCard(novel, which) {
   return div;
 }
 
+function convertNarouMarkup(str) {
+  // XSS対策で先にエスケープ
+  let s = String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+
+  // ルビ記法: |単語《ルビ》 または 単語《ルビ》
+  s = s.replace(/\|([^《]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+  s = s.replace(/([一-龯々〆〤ヶ]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+
+  // 傍点記法: 《《文字》》
+  s = s.replace(/《《([^》]+)》》/g, '<em class="boten">$1</em>');
+
+  return s;
+}
+
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -254,7 +271,7 @@ function renderReadScreen(novel) {
     }
     part.split('\n').forEach(line => {
       const p = document.createElement('p');
-      p.textContent = line;
+      p.innerHTML = convertNarouMarkup(line);
       p.dataset.line = lineIndex;
       body.appendChild(p);
       lineIndex++;
