@@ -189,13 +189,17 @@ async function showNovel(id) {
 
 async function deleteNovel(id) {
   if (!confirm('この作品を完全に削除しますか？この操作は取り消せません。')) return;
-  await sb.from('reviews').delete().eq('novel_id', id);
-  await sb.from('novel_stats').delete().eq('novel_id', id);
-  await sb.from('reading_lock').delete().eq('novel_id', id);
-  await sb.from('reports').delete().eq('novel_id', id);
-  await sb.from('novels').delete().eq('id', id);
-  await loadNovels();
-  await loadStats();
+  try {
+    await sb.from('reading_lock').delete().eq('novel_id', id);
+    await sb.from('reports').delete().eq('novel_id', id);
+    await sb.from('reviews').delete().eq('novel_id', id);
+    await sb.from('novel_stats').delete().eq('novel_id', id);
+    await sb.from('novels').delete().eq('id', id);
+    await loadNovels();
+    await loadStats();
+  } catch(e) {
+    alert('削除に失敗しました：' + e.message);
+  }
 }
 
 async function handleReport(reportId, novelId, action) {
@@ -205,6 +209,11 @@ async function handleReport(reportId, novelId, action) {
   }
   await loadReports();
   await loadStats();
+}
+
+function closeModal() {
+  const m = document.getElementById('novel-modal');
+  if (m) m.remove();
 }
 
 function escHtml(str) {
@@ -236,7 +245,7 @@ async function viewNovel(id) {
     + '<div style="font-family:Noto Serif JP,serif;font-size:16px;font-weight:500;color:#2c1f14;">' + escHtml(novel.title) + '</div>'
     + '<div style="font-size:12px;color:#a08060;margin-top:2px;">' + escHtml(novel.catchcopy) + '</div>'
     + '</div>'
-    + '<button onclick="document.getElementById(\"novel-modal\").remove()" style="background:none;border:0.5px solid #e8ddd3;border-radius:8px;padding:6px 12px;font-size:12px;color:#a08060;cursor:pointer;">閉じる</button>'
+    + '<button onclick="closeModal()" style="background:none;border:0.5px solid #e8ddd3;border-radius:8px;padding:6px 12px;font-size:12px;color:#a08060;cursor:pointer;">閉じる</button>'
     + '</div>'
     + '<div style="padding:20px;overflow-y:auto;flex:1;">' + bodyHTML + '</div>'
     + '</div>';
