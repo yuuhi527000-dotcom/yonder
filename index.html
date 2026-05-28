@@ -18,50 +18,60 @@
     .eval-inputs{display:flex;align-items:center;gap:8px;margin-top:6px;}
     .eval-inputs input{width:56px;padding:6px 8px;border:0.5px solid var(--border);border-radius:8px;font-size:14px;text-align:center;background:#fff;color:var(--ink);}
     .eval-inputs span{font-size:13px;color:var(--ink3);}
-    .eval-note{font-size:11px;color:var(--ink3);margin-top:4px;}
     .start-btn{width:100%;margin-top:24px;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:.06em;transition:opacity .15s;}
     .start-btn:hover{opacity:.88;}
+    .fav-section{border-top:0.5px solid var(--border);padding:14px 18px 18px;}
+    .fav-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .fav-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+    .fav-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .fav-card{background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:10px;position:relative;cursor:pointer;transition:all .15s;}
+    .fav-card:hover{border-color:var(--acc2);}
+    .fav-menu{position:absolute;top:5px;right:6px;font-size:13px;color:var(--ink3);cursor:pointer;padding:3px;}
+    .fav-empty{background:var(--bg);border:0.5px dashed var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink3);}
     #s-pick{padding:16px 16px 32px;}
-    .pick-hint{text-align:center;font-size:11px;color:var(--ink3);margin-bottom:14px;}
-    .cards-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+    .pick-hint{text-align:center;font-size:11px;color:var(--ink3);margin-bottom:12px;}
+    .cards-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
     .novel-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
     .novel-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;}
     .novel-card:hover{border-color:var(--acc2);transform:translateY(-2px);}
-    .novel-card:hover::after,.novel-card.sel::after{transform:scaleX(1);}
-    .novel-card.sel{border-color:var(--acc);}
+    .novel-card:hover::after{transform:scaleX(1);}
     .c-genre{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--acc2);margin-bottom:5px;}
     .c-title{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:7px;line-height:1.5;}
     .c-copy{font-size:11px;color:var(--ink2);line-height:1.75;margin-bottom:10px;}
     .c-meta{display:flex;gap:8px;}
     .c-meta span{font-size:10px;color:var(--ink3);}
-    .pick-actions{display:flex;flex-direction:column;gap:8px;}
+    .skip-row{display:flex;align-items:center;justify-content:center;gap:8px;}
+    .skip-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:7px 18px;font-size:12px;color:var(--ink3);cursor:pointer;transition:all .15s;}
+    .skip-btn:hover{border-color:var(--acc2);color:var(--acc);}
     .main-btn{padding:13px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s;width:100%;}
     .main-btn:hover{opacity:.88;}
     .main-btn:disabled{opacity:.3;cursor:not-allowed;}
     .main-btn.back{background:var(--acc3);color:var(--acc);}
-    .skip-row{display:flex;align-items:center;justify-content:center;gap:8px;}
-    .skip-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:7px 18px;font-size:12px;color:var(--ink3);cursor:pointer;transition:all .15s;}
-    .skip-btn:hover{border-color:var(--acc2);color:var(--acc);}
     .no-novels{text-align:center;padding:40px 20px;font-size:13px;color:var(--ink3);line-height:1.8;grid-column:1/-1;}
     #s-read{min-height:calc(100vh - 53px);}
+    .fav-read-banner{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--acc3);border-bottom:0.5px solid var(--acc2);font-size:11px;color:var(--acc);}
+    .bookmark-jump{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fffbf7;border-bottom:0.5px solid var(--acc3);font-size:11px;color:var(--acc2);cursor:pointer;}
+    .bookmark-jump:hover{background:var(--acc3);}
     .read-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--border);background:#fff;}
-    .read-title-txt{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);flex:1;margin-right:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .bail-btn{background:none;border:0.5px solid #f0c4b4;border-radius:20px;padding:5px 13px;font-size:11px;color:#b85a42;cursor:pointer;flex-shrink:0;transition:all .15s;}
+    .read-title-txt{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);flex:1;margin-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .read-acts{display:flex;align-items:center;gap:6px;}
+    .bail-btn{background:none;border:0.5px solid #f0c4b4;border-radius:20px;padding:5px 13px;font-size:11px;color:#b85a42;cursor:pointer;transition:all .15s;}
     .bail-btn:hover{background:#fdf0ec;}
+    .bm-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 10px;font-size:11px;color:var(--ink3);cursor:pointer;display:flex;align-items:center;gap:3px;transition:all .15s;}
     .prog-wrap{padding:0 16px;margin:8px 0;}
     .prog-track{height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
     .prog-bar{height:100%;background:var(--acc);width:0%;transition:width .3s;}
-    .read-body{padding:20px;font-size:15px;line-height:2.2;color:var(--ink);overflow-y:auto;flex:1;max-height:calc(100vh - 200px);}
+    .read-body{padding:20px;font-size:15px;line-height:2.2;color:var(--ink);overflow-y:auto;flex:1;max-height:calc(100vh - 220px);}
     .read-body p{margin-bottom:.8em;}
     .chapter-sep{text-align:center;color:var(--ink3);font-size:13px;margin:24px 0;letter-spacing:.1em;}
     .read-footer{padding:12px 16px;border-top:0.5px solid var(--border);background:var(--bg);}
     .lock-note{font-size:10px;color:var(--ink3);text-align:center;margin-bottom:9px;}
-    .to-eval-btn{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s;}
-    .to-eval-btn:hover{opacity:.88;}
-    #s-bail,#s-eval{padding:22px 18px 32px;}
+    .sub-btn{width:100%;padding:12px;background:none;border:0.5px solid var(--border);border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;color:var(--ink3);cursor:pointer;transition:all .15s;}
+    .sub-btn:hover{border-color:var(--acc2);color:var(--acc);}
+    #s-bail,#s-eval,#s-report{padding:22px 18px 32px;}
     .section-head{font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px;}
     .section-sub{font-size:12px;color:var(--ink3);margin-bottom:18px;line-height:1.7;}
-    .eval-group{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+    .eval-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
     .eval-opt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:0.5px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;transition:all .18s;}
     .eval-opt:hover{border-color:var(--acc2);}
     .eval-opt.sel-good{border-color:#7db89a;background:#f2faf6;}
@@ -70,13 +80,20 @@
     .eval-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
     .eval-text{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);}
     .eval-desc{font-size:10px;color:var(--ink3);margin-top:2px;}
-    .divider{height:0.5px;background:var(--border);margin:16px 0;}
-    .reason-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+    .heart-row{margin-bottom:14px;padding:12px 14px;background:var(--acc3);border-radius:10px;border:0.5px solid var(--acc2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+    .heart-row:hover{background:#ede0d4;}
+    .heart-left{display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .heart-icon{font-size:20px;color:var(--acc);}
+    .heart-txt{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);}
+    .heart-sub{font-size:10px;color:var(--ink3);margin-top:2px;}
+    .heart-ct{font-size:11px;color:var(--ink3);pointer-events:none;}
+    .divider{height:0.5px;background:var(--border);margin:14px 0;}
+    .reason-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
     .reason-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;transition:all .18s;text-align:left;width:100%;}
     .reason-btn:hover,.reason-btn.sel{border-color:var(--acc2);background:var(--acc3);}
     .reason-txt{font-size:13px;color:var(--ink);}
     .reason-sub{font-size:10px;color:var(--ink3);}
-    .comment-label{font-size:11px;color:var(--ink3);margin-bottom:5px;margin-top:14px;}
+    .comment-label{font-size:11px;color:var(--ink3);margin-bottom:5px;margin-top:2px;}
     .opt-badge{font-size:9px;background:var(--acc3);color:var(--acc);border-radius:3px;padding:1px 5px;margin-left:4px;}
     textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:9px;font-size:13px;color:var(--ink);background:var(--bg);resize:vertical;min-height:72px;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.7;margin-bottom:14px;}
     textarea:focus{outline:none;border-color:var(--acc2);}
@@ -103,6 +120,7 @@
     </div>
   </nav>
 
+  <!-- ① 設定 -->
   <div id="s-setup" class="screen active">
     <div class="fsec"><div class="sec-label">ジャンル</div><div class="tag-group">
       <div class="tag sel" onclick="this.classList.toggle('sel')">恋愛</div>
@@ -122,16 +140,24 @@
     </div></div>
     <div class="fsec">
       <div class="sec-label">「よかった」評価の割合</div>
-      <div class="eval-note">この範囲の作品を表示（誤差±5%）</div>
+      <div style="font-size:10px;color:var(--ink3);margin-bottom:6px;">この範囲の作品を表示（誤差±5%）</div>
       <div class="eval-inputs"><input type="number" id="eval-min" value="0" min="0" max="100"> %<span>〜</span><input type="number" id="eval-max" value="100" min="0" max="100"> %</div>
     </div>
     <button class="start-btn" onclick="startSearch()">この条件で探す →</button>
+    <div class="fav-section">
+      <div class="fav-header">
+        <div class="fav-title"><i class="ti ti-heart" style="font-size:13px;color:var(--acc)" aria-hidden="true"></i>お気に入り</div>
+        <span style="font-size:11px;color:var(--ink3)" id="fav-count">0 / 4</span>
+      </div>
+      <div class="fav-grid" id="fav-grid"></div>
+    </div>
   </div>
 
+  <!-- ② 2択 -->
   <div id="s-pick" class="screen">
-    <p class="pick-hint">気になる方を選んで読もう</p>
+    <p class="pick-hint">気になる方をタップしてすぐ読もう</p>
     <div class="cards-row" id="cards-row"><div class="loading">読み込み中...</div></div>
-    <div class="pick-actions">
+    <div style="padding:0 16px 20px;display:flex;flex-direction:column;gap:8px;">
       <button class="main-btn back" id="back-btn" onclick="backToSetup()" style="display:none">← 条件設定に戻る</button>
       <div class="skip-row" id="skip-row">
         <button class="skip-btn" onclick="doSkip()">どちらも気分じゃない</button>
@@ -140,55 +166,91 @@
     </div>
   </div>
 
+  <!-- ③ 読む -->
   <div id="s-read" class="screen">
+    <div id="fav-read-banner" class="fav-read-banner" style="display:none">
+      <i class="ti ti-heart" style="font-size:13px" aria-hidden="true"></i>
+      お気に入りから読んでいます
+    </div>
+    <div id="bookmark-jump" class="bookmark-jump" style="display:none" onclick="jumpToBookmark()">
+      <i class="ti ti-bookmark" style="font-size:13px" aria-hidden="true"></i>
+      前回のしおりから続きを読む →
+    </div>
     <div class="read-hdr">
       <div class="read-title-txt" id="read-title"></div>
-      <button class="bail-btn" onclick="goTo('s-bail')">途中離脱</button>
-      <button class="bail-btn" onclick="goTo('s-report')" style="border-color:var(--border);color:var(--ink3);margin-left:6px;">通報</button>
+      <div class="read-acts">
+        <button class="bm-btn" id="bookmark-btn" onclick="toggleBookmark()"><i class="ti ti-bookmark" style="font-size:11px" aria-hidden="true"></i>しおり</button>
+        <button class="bail-btn" onclick="goTo('s-bail')">途中離脱</button>
+        <button class="bail-btn" onclick="goTo('s-report')" style="border-color:var(--border);color:var(--ink3);">通報</button>
+      </div>
     </div>
     <div class="prog-wrap"><div class="prog-track"><div class="prog-bar" id="prog-bar"></div></div></div>
     <div class="read-body" id="read-body" onscroll="updProg()"></div>
-    <div class="read-footer">
+    <div id="read-footer-normal" class="read-footer">
       <div class="lock-note">🔒 評価するまで次の作品は読めません</div>
-      <button class="to-eval-btn" onclick="goTo('s-eval')">読み終わった。評価する →</button>
+      <button class="main-btn" onclick="goTo('s-eval')">読み終わった。評価する →</button>
+    </div>
+    <div id="read-footer-fav" class="read-footer" style="display:none">
+      <button class="sub-btn" onclick="finishFavRead()">← 読むに戻る</button>
     </div>
   </div>
 
+  <!-- ④ 途中離脱 -->
   <div id="s-bail" class="screen">
-    <div class="section-head">途中で離脱しますか？</div>
-    <div class="section-sub">評価と離脱理由を教えてください（どちらも必須）</div>
-    <div class="sec-label" style="margin-bottom:9px">この作品の評価</div>
-    <div class="eval-group" id="bail-eval-grp">
-      <div class="eval-opt" onclick="selBailEval(this,'good')"><div class="eval-icon">✨</div><div><div class="eval-text">よかった</div><div class="eval-desc">途中だけど面白かった</div></div></div>
-      <div class="eval-opt" onclick="selBailEval(this,'mid')"><div class="eval-icon">〜</div><div><div class="eval-text">普通</div><div class="eval-desc">悪くはなかった</div></div></div>
-      <div class="eval-opt" onclick="selBailEval(this,'bad')"><div class="eval-icon">🌧</div><div><div class="eval-text">期待外れ</div><div class="eval-desc">自分には合わなかった</div></div></div>
+    <div style="padding:22px 18px 32px">
+      <div class="section-head">途中で離脱しますか？</div>
+      <div class="section-sub">評価と離脱理由を教えてください（どちらも必須）</div>
+      <div class="sec-label" style="margin-bottom:9px">この作品の評価</div>
+      <div class="eval-group" id="bail-eval-grp">
+        <div class="eval-opt" onclick="selBailEval(this,'good')"><div class="eval-icon">✨</div><div><div class="eval-text">よかった</div><div class="eval-desc">途中だけど面白かった</div></div></div>
+        <div class="eval-opt" onclick="selBailEval(this,'mid')"><div class="eval-icon">〜</div><div><div class="eval-text">普通</div><div class="eval-desc">悪くはなかった</div></div></div>
+        <div class="eval-opt" onclick="selBailEval(this,'bad')"><div class="eval-icon">🌧</div><div><div class="eval-text">期待外れ</div><div class="eval-desc">自分には合わなかった</div></div></div>
+      </div>
+      <div class="heart-row" onclick="toggleBailHeart()">
+        <div class="heart-left">
+          <i class="ti ti-heart heart-icon" id="bail-heart-icon" aria-hidden="true"></i>
+          <div><div class="heart-txt">お気に入りに追加</div><div class="heart-sub">タップして登録（最大4作品）</div></div>
+        </div>
+        <div class="heart-ct" id="bail-heart-ct">- / 4</div>
+      </div>
+      <div class="divider"></div>
+      <div class="sec-label" style="margin-bottom:9px">離脱の理由</div>
+      <div class="reason-group" id="reason-grp">
+        <button class="reason-btn" onclick="selReason(this,'tired')"><div><div class="reason-txt">今は読む時間・気力がない</div><div class="reason-sub">続きはまた読むかも</div></div></button>
+        <button class="reason-btn" onclick="selReason(this,'mismatch')"><div><div class="reason-txt">思っていたのと違った</div><div class="reason-sub">キャラ・展開・文体が合わなかった</div></div></button>
+        <button class="reason-btn" onclick="selReason(this,'tempo')"><div><div class="reason-txt">テンポが合わなかった</div></div></button>
+        <button class="reason-btn" onclick="selReason(this,'other')"><div><div class="reason-txt">その他</div></div></button>
+      </div>
+      <div class="comment-label">コメント<span class="opt-badge">任意</span></div>
+      <textarea id="bail-comment" placeholder="作者さんへひとこと（作者のみ閲覧）"></textarea>
+      <button class="main-btn" id="bail-submit" onclick="submitBail()" disabled>離脱して送信する</button>
     </div>
-    <div class="divider"></div>
-    <div class="sec-label" style="margin-bottom:9px">離脱の理由</div>
-    <div class="reason-group" id="reason-grp">
-      <button class="reason-btn" onclick="selReason(this,'tired')"><div><div class="reason-txt">今は読む時間・気力がない</div><div class="reason-sub">続きはまた読むかも</div></div></button>
-      <button class="reason-btn" onclick="selReason(this,'mismatch')"><div><div class="reason-txt">思っていたのと違った</div><div class="reason-sub">キャラ・展開・文体が合わなかった</div></div></button>
-      <button class="reason-btn" onclick="selReason(this,'tempo')"><div><div class="reason-txt">テンポが合わなかった</div></div></button>
-      <button class="reason-btn" onclick="selReason(this,'other')"><div><div class="reason-txt">その他</div></div></button>
-    </div>
-    <div class="comment-label">コメント<span class="opt-badge">任意</span></div>
-    <textarea id="bail-comment" placeholder="作者さんへひとこと（作者のみ閲覧）"></textarea>
-    <button class="main-btn" id="bail-submit" onclick="submitBail()" disabled>離脱して送信する</button>
   </div>
 
+  <!-- ⑤ 評価 -->
   <div id="s-eval" class="screen">
-    <div class="section-head">この作品はどうでしたか？</div>
-    <div class="section-sub">評価するまで次の作品は表示されません</div>
-    <div class="eval-group" id="eval-grp">
-      <div class="eval-opt" onclick="selEval(this,'good')"><div class="eval-icon">✨</div><div><div class="eval-text">よかった</div><div class="eval-desc">また読みたいと思える作品だった</div></div></div>
-      <div class="eval-opt" onclick="selEval(this,'mid')"><div class="eval-icon">〜</div><div><div class="eval-text">普通</div><div class="eval-desc">悪くはなかった</div></div></div>
-      <div class="eval-opt" onclick="selEval(this,'bad')"><div class="eval-icon">🌧</div><div><div class="eval-text">期待外れ</div><div class="eval-desc">自分には合わなかった</div></div></div>
+    <div style="padding:22px 18px 32px">
+      <div class="section-head">この作品はどうでしたか？</div>
+      <div class="section-sub">評価するまで次の作品は表示されません</div>
+      <div class="eval-group" id="eval-grp">
+        <div class="eval-opt" onclick="selEval(this,'good')"><div class="eval-icon">✨</div><div><div class="eval-text">よかった</div><div class="eval-desc">また読みたいと思える作品だった</div></div></div>
+        <div class="eval-opt" onclick="selEval(this,'mid')"><div class="eval-icon">〜</div><div><div class="eval-text">普通</div><div class="eval-desc">悪くはなかった</div></div></div>
+        <div class="eval-opt" onclick="selEval(this,'bad')"><div class="eval-icon">🌧</div><div><div class="eval-text">期待外れ</div><div class="eval-desc">自分には合わなかった</div></div></div>
+      </div>
+      <div class="heart-row" onclick="toggleHeart()">
+        <div class="heart-left">
+          <i class="ti ti-heart heart-icon" id="heart-icon" aria-hidden="true"></i>
+          <div><div class="heart-txt">お気に入りに追加</div><div class="heart-sub">タップして登録（最大4作品）</div></div>
+        </div>
+        <div class="heart-ct" id="heart-ct">- / 4</div>
+      </div>
+      <div class="comment-label">コメント<span class="opt-badge">任意</span></div>
+      <textarea id="eval-comment" placeholder="作者さんへひとこと（作者のみ閲覧）"></textarea>
+      <button class="main-btn" id="eval-submit" onclick="submitEval()" disabled>評価を送信する</button>
     </div>
-    <div class="comment-label">コメント<span class="opt-badge">任意</span></div>
-    <textarea id="eval-comment" placeholder="作者さんへひとこと（作者のみ閲覧）"></textarea>
-    <button class="main-btn" id="eval-submit" onclick="submitEval()" disabled>評価を送信する</button>
   </div>
 
+  <!-- ⑥ 通報 -->
   <div id="s-report" class="screen">
     <div style="padding:22px 18px 32px">
       <div class="section-head">この作品を通報する</div>
@@ -202,10 +264,11 @@
       <div class="comment-label">詳細コメント<span class="opt-badge">任意</span></div>
       <textarea id="report-comment" placeholder="詳しい内容があれば記入してください"></textarea>
       <button class="main-btn" id="report-submit" onclick="submitReport()" disabled>通報する</button>
-      <button class="main-btn" onclick="goTo('s-read')" style="margin-top:8px;background:none;border:0.5px solid var(--border);color:var(--ink3);">キャンセル</button>
+      <button class="sub-btn" onclick="goTo('s-read')" style="margin-top:8px">キャンセル</button>
     </div>
   </div>
 
+  <!-- ⑦ 完了 -->
   <div id="s-done" class="screen">
     <div class="done-circle">✓</div>
     <div class="done-title">ありがとうございます</div>
