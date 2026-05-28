@@ -96,6 +96,7 @@ async function loadDashboard() {
         <div class="novel-copy" id="copy-display-${novel.id}">
           ${escHtml(novel.catchcopy)}
           <button class="edit-copy" onclick="editCopy('${novel.id}','${escHtml(novel.catchcopy)}')">編集</button>
+          <button class="edit-copy" style="border-color:#f0c4b4;color:#b85a42;" onclick="requestDelete('${novel.id}','${escHtml(novel.title)}')">削除申請</button>
         </div>
         <div id="copy-edit-${novel.id}" style="display:none"></div>
 
@@ -174,6 +175,24 @@ async function saveCopy(novelId) {
 function cancelEdit(novelId) {
   document.getElementById('copy-display-' + novelId).style.display = 'block';
   document.getElementById('copy-edit-' + novelId).style.display = 'none';
+}
+
+async function requestDelete(novelId, title) {
+  if (!confirm('「' + title + '」を削除しますか？\n\n評価データもすべて削除されます。この操作は取り消せません。')) return;
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = '削除中...';
+  try {
+    await sb.from('reading_lock').delete().eq('novel_id', novelId);
+    await sb.from('reports').delete().eq('novel_id', novelId);
+    await sb.from('reviews').delete().eq('novel_id', novelId);
+    await sb.from('novel_stats').delete().eq('novel_id', novelId);
+    const { error } = await sb.from('novels').delete().eq('id', novelId).eq('author_id', currentUser.id);
+    if (error) throw error;
+    await loadDashboard();
+  } catch(e) {
+    alert('削除に失敗しました：' + e.message);
+    btn.disabled = false; btn.textContent = '削除申請';
+  }
 }
 
 function escHtml(str) {
