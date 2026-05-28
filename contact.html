@@ -143,19 +143,10 @@
         'ブラウザ: ' + userAgent;
 
       try {
-        const res = await fetch('https://api.resend.com/emails', {
+        const res = await fetch('/api/contact', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer re_UDf5Lzrj_8v22weGhbk81EnUC8rkPPekC'
-          },
-          body: JSON.stringify({
-            from: 'Yonder お問い合わせ <noreply@kotobakagami.com>',
-            to: ['yuuhi527000@gmail.com'],
-            reply_to: email,
-            subject: '【Yonder】' + (typeLabels[type] || type) + ' - ' + (name || email),
-            text: emailBody
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, type, body, userId, userEmail, pageUrl, userAgent, now })
         });
 
         if (!res.ok) throw new Error('送信失敗');
