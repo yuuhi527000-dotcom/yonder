@@ -39,10 +39,16 @@ async function loadStats() {
   const { count: novelCount } = await sb.from('novels').select('*', { count: 'exact', head: true });
   const { count: reviewCount } = await sb.from('reviews').select('*', { count: 'exact', head: true });
   const { count: reportCount } = await sb.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+
+  // ユーザー数はprofilesテーブルで代替（auth.usersはクライアントから直接取得不可）
+  // novel_statsのshown_countで代わりに表示
+  const { data: userData } = await sb.rpc('get_user_count');
+  const userCount = userData || '—';
+
   document.getElementById('s-novels').textContent = novelCount || 0;
   document.getElementById('s-reviews').textContent = reviewCount || 0;
   document.getElementById('s-reports').textContent = reportCount || 0;
-  document.getElementById('s-users').textContent = '—';
+  document.getElementById('s-users').textContent = userCount;
 }
 
 async function loadNovels() {
