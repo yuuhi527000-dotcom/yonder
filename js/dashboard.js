@@ -1,11 +1,15 @@
 let currentUser = null;
 const REVIEWS_PER_PAGE = 3;
+let currentNovelId = null;
+let currentReviews = [];
+let reviewPage = 0;
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
   currentUser = session.user;
-  await loadDashboard();
+  await loadLinks();
+  await loadNovels();
 })();
 
 async function logout() {
@@ -13,185 +17,197 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
-async function loadDashboard() {
-  const list = document.getElementById('novels-list');
-  const { data: novels } = await sb.from('novels').select('*').eq('author_id', currentUser.id).order('created_at', { ascending: false });
+function showList() {
+  document.getElementById('view-list').style.display = 'block';
+  document.getElementById('view-detail').style.display = 'none';
+}
+
+function showDetail() {
+  document.getElementById('view-list').style.display = 'none';
+  document.getElementById('view-detail').style.display = 'block';
+}
+
+async function loadNovels() {
+  const el = document.getElementById('novels-list');
+  const { data: novels } = await sb.from('novels').select('*, novel_stats(*)').eq('author_id', currentUser.id).order('created_at', { ascending: false });
 
   if (!novels || novels.length === 0) {
-    list.innerHTML = '<div class="empty">まだ投稿した作品がありません。<br><a href="post.html" style="color:var(--acc)">投稿する →</a></div>';
+    el.innerHTML = '<div class="empty">まだ投稿した作品がありません。<br><a href="post.html" style="color:var(--acc)">投稿する →</a></div>';
     return;
   }
 
-  list.innerHTML = '';
+  const { data: reviews } = await sb.from('reviews').select('novel_id, rating').in('novel_id', novels.map(n => n.id));
 
-  for (const novel of novels) {
-    const { data: reviews } = await sb.from('reviews').select('*').eq('novel_id', novel.id).order('created_at', { ascending: false });
-    const { data: stats } = await sb.from('novel_stats').select('*').eq('novel_id', novel.id).single();
-
-    const total = reviews ? reviews.length : 0;
-    const good = reviews ? reviews.filter(r => r.rating === 'good').length : 0;
-    const mid = reviews ? reviews.filter(r => r.rating === 'mid').length : 0;
-    const bad = reviews ? reviews.filter(r => r.rating === 'bad').length : 0;
-    const completed = reviews ? reviews.filter(r => r.is_completed).length : 0;
-    const bails = reviews ? reviews.filter(r => !r.is_completed) : [];
-
-    const goodPct = total > 0 ? Math.round(good / total * 100) : 0;
-    const midPct = total > 0 ? Math.round(mid / total * 100) : 0;
-    const badPct = total > 0 ? Math.round(bad / total * 100) : 0;
-    const bayesPct = Math.round((novel.bayes_score || 0.65) * 100);
-
-    const shownCount = stats ? stats.shown_count : 0;
-    const chosenCount = stats ? stats.chosen_count : 0;
-    const notChosenCount = stats ? stats.not_chosen_count : 0;
-    const chosenPct = shownCount > 0 ? Math.round(chosenCount / shownCount * 100) : 0;
-
-    const scoreClass = bayesPct >= 70 ? 'score-high' : bayesPct >= 50 ? 'score-mid' : 'score-low';
-    const bailReasonMap = { tired:'時間・気力がない', mismatch:'思っていたのと違った', tempo:'テンポが合わなかった', other:'その他' };
-
-    // レビューをページに分割
-    const reviewPages = [];
-    if (reviews && reviews.length > 0) {
-      for (let i = 0; i < reviews.length; i += REVIEWS_PER_PAGE) {
-        reviewPages.push(reviews.slice(i, i + REVIEWS_PER_PAGE));
-      }
-    }
-    const totalPages = reviewPages.length;
-    const nid = novel.id.replace(/-/g, '');
-
-    const reviewsHTML = totalPages === 0
-      ? '<div style="padding:16px 18px;font-size:12px;color:var(--ink3);text-align:center;">まだ評価がありません</div>'
-      : reviewPages.map((page, pi) => `
-          <div class="review-page ${pi === 0 ? 'active' : ''}" id="rp-${nid}-${pi}">
-            ${page.map(r => `
-              <div class="review-item">
-                <span class="rating-badge ${r.rating === 'good' ? 'r-good' : r.rating === 'mid' ? 'r-mid' : 'r-bad'}">
-                  ${r.rating === 'good' ? 'よかった' : r.rating === 'mid' ? '普通' : '期待外れ'}
-                </span>
-                <div class="review-body">
-                  <div class="review-comment">${r.comment ? escHtml(r.comment) : '（コメントなし）'}</div>
-                  <div class="review-meta">
-                    ${r.is_completed ? '読了' : '途中離脱'}
-                    ${!r.is_completed && r.bail_reason ? '<span class="bail-tag">理由：' + (bailReasonMap[r.bail_reason] || r.bail_reason) + '</span>' : ''}
-                  </div>
-                </div>
-              </div>
-            `).join('')}
+  el.innerHTML = novels.map(novel => {
+    const novelReviews = reviews ? reviews.filter(r => r.novel_id === novel.id) : [];
+    const total = novelReviews.length;
+    const pct = Math.round((novel.bayes_score || 0.65) * 100);
+    const badgeClass = pct >= 70 ? 'good' : 'mid';
+    const stats = novel.novel_stats;
+    return `
+      <div class="novel-row" onclick="openDetail('${novel.id}')">
+        <div class="nrl">
+          <div class="nr-title">${escHtml(novel.title)}</div>
+          <div class="nr-meta">
+            <span>${novel.genre || '—'} · ${novel.char_count ? Math.round(novel.char_count/10000*10)/10+'万字' : '—'}</span>
+            <span>${total}件評価</span>
           </div>
-        `).join('') + (totalPages > 1 ? `
-          <div class="pagination">
-            <button class="page-btn" id="prev-${nid}" onclick="changePage('${nid}', -1)" disabled aria-label="前のページ"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-            <span class="page-info" id="pi-${nid}">1 / ${totalPages}ページ</span>
-            <button class="page-btn" id="next-${nid}" onclick="changePage('${nid}', 1)" aria-label="次のページ"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-          </div>
-        ` : '');
-
-    const card = document.createElement('div');
-    card.className = 'novel-block';
-    card.innerHTML = `
-      <div class="novel-head">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
-          <div class="novel-title">${escHtml(novel.title)}</div>
-          <span class="score-badge ${scoreClass}">よかった ${bayesPct}%</span>
         </div>
-        <div class="novel-copy" id="copy-display-${novel.id}">
-          ${escHtml(novel.catchcopy)}
-          <button class="edit-copy" onclick="editCopy('${novel.id}','${escHtml(novel.catchcopy)}')">編集</button>
-          <button class="edit-copy" style="border-color:#f0c4b4;color:#b85a42;" onclick="requestDelete('${novel.id}','${escHtml(novel.title)}')">削除申請</button>
-        </div>
-        <div id="copy-edit-${novel.id}" style="display:none"></div>
-
-        <div class="stats-row" style="margin-top:12px">
-          <div class="stat"><div class="stat-n">${shownCount}</div><div class="stat-l">カード表示</div></div>
-          <div class="stat"><div class="stat-n">${chosenCount}</div><div class="stat-l">選ばれた</div></div>
-          <div class="stat"><div class="stat-n">${notChosenCount}</div><div class="stat-l">選ばれなかった</div></div>
-          <div class="stat"><div class="stat-n">${chosenPct}%</div><div class="stat-l">選択率</div></div>
-        </div>
-        <div class="stats-row" style="margin-top:8px">
-          <div class="stat"><div class="stat-n">${completed}</div><div class="stat-l">読了数</div></div>
-          <div class="stat"><div class="stat-n" style="color:#4a9b6f">${good}</div><div class="stat-l">よかった</div></div>
-          <div class="stat"><div class="stat-n" style="color:var(--acc2)">${mid}</div><div class="stat-l">普通</div></div>
-          <div class="stat"><div class="stat-n" style="color:#b85a42">${bad}</div><div class="stat-l">期待外れ</div></div>
-        </div>
-        ${total > 0 ? `
-        <div class="eval-bar">
-          <div class="bar-g" style="width:${goodPct}%"></div>
-          <div class="bar-m" style="width:${midPct}%"></div>
-          <div class="bar-b" style="width:${badPct}%"></div>
-        </div>
-        <div class="legend">
-          <div class="leg"><div class="dot" style="background:#7db89a"></div>よかった ${goodPct}%</div>
-          <div class="leg"><div class="dot" style="background:#c4956a"></div>普通 ${midPct}%</div>
-          <div class="leg"><div class="dot" style="background:#d49080"></div>期待外れ ${badPct}%</div>
-        </div>` : ''}
+        <span class="nr-badge ${badgeClass}">よかった ${pct}%</span>
+        <i class="ti ti-chevron-right" style="font-size:16px;color:var(--ink3);margin-left:6px" aria-hidden="true"></i>
       </div>
-      <div class="reviews-section">${reviewsHTML}</div>
     `;
-    list.appendChild(card);
+  }).join('');
+}
+
+async function openDetail(novelId) {
+  currentNovelId = novelId;
+  showDetail();
+  const el = document.getElementById('detail-content');
+  el.innerHTML = '<div class="loading">読み込み中...</div>';
+
+  const { data: novel } = await sb.from('novels').select('*').eq('id', novelId).single();
+  const { data: stats } = await sb.from('novel_stats').select('*').eq('novel_id', novelId).single();
+  const { data: reviews } = await sb.from('reviews').select('*').eq('novel_id', novelId).order('created_at', { ascending: false });
+
+  currentReviews = reviews || [];
+  reviewPage = 0;
+
+  const total = currentReviews.length;
+  const good = currentReviews.filter(r => r.rating === 'good').length;
+  const mid = currentReviews.filter(r => r.rating === 'mid').length;
+  const bad = currentReviews.filter(r => r.rating === 'bad').length;
+  const completed = currentReviews.filter(r => r.is_completed).length;
+  const pct = Math.round((novel.bayes_score || 0.65) * 100);
+  const goodPct = total > 0 ? Math.round(good/total*100) : 0;
+  const midPct = total > 0 ? Math.round(mid/total*100) : 0;
+  const badPct = total > 0 ? Math.round(bad/total*100) : 0;
+
+  el.innerHTML = `
+    <div class="detail-title">${escHtml(novel.title)}</div>
+    <div class="detail-copy">${escHtml(novel.catchcopy)}</div>
+    <span class="score-badge">よかった ${pct}%</span>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-n">${stats ? stats.shown_count : 0}</div><div class="stat-l">カード表示</div></div>
+      <div class="stat"><div class="stat-n">${stats ? stats.chosen_count : 0}</div><div class="stat-l">選ばれた</div></div>
+      <div class="stat"><div class="stat-n">${stats ? stats.not_chosen_count : 0}</div><div class="stat-l">選ばれなかった</div></div>
+      <div class="stat"><div class="stat-n">${stats && stats.shown_count > 0 ? Math.round(stats.chosen_count/stats.shown_count*100) : 0}%</div><div class="stat-l">選択率</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-n">${completed}</div><div class="stat-l">読了数</div></div>
+      <div class="stat"><div class="stat-n" style="color:#4a9b6f">${good}</div><div class="stat-l">よかった</div></div>
+      <div class="stat"><div class="stat-n" style="color:var(--acc2)">${mid}</div><div class="stat-l">普通</div></div>
+      <div class="stat"><div class="stat-n" style="color:#b85a42">${bad}</div><div class="stat-l">期待外れ</div></div>
+    </div>
+
+    ${total > 0 ? `
+    <div class="eval-bar">
+      <div class="bar-g" style="width:${goodPct}%"></div>
+      <div class="bar-m" style="width:${midPct}%"></div>
+      <div class="bar-b" style="width:${badPct}%"></div>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="dot" style="background:#7db89a"></div>よかった ${goodPct}%</div>
+      <div class="leg"><div class="dot" style="background:#c4956a"></div>普通 ${midPct}%</div>
+      <div class="leg"><div class="dot" style="background:#d49080"></div>期待外れ ${badPct}%</div>
+    </div>` : ''}
+
+    <div class="comments-head">
+      <div class="comments-title">読者コメント</div>
+      <div class="page-nav">
+        <button class="page-btn" id="prev-btn" onclick="changeReviewPage(-1)" disabled aria-label="前のページ"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+        <span class="page-info" id="page-info">1 / ${Math.max(1, Math.ceil(total/REVIEWS_PER_PAGE))}ページ</span>
+        <button class="page-btn" id="next-btn" onclick="changeReviewPage(1)" ${total <= REVIEWS_PER_PAGE ? 'disabled' : ''} aria-label="次のページ"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <div id="reviews-wrap"></div>
+
+    <button class="delete-btn" onclick="deleteNovel('${novel.id}','${escHtml(novel.title)}')">この作品を削除する</button>
+  `;
+
+  renderReviews();
+}
+
+function renderReviews() {
+  const el = document.getElementById('reviews-wrap');
+  const total = currentReviews.length;
+  const totalPages = Math.max(1, Math.ceil(total / REVIEWS_PER_PAGE));
+  const paged = currentReviews.slice(reviewPage * REVIEWS_PER_PAGE, (reviewPage + 1) * REVIEWS_PER_PAGE);
+  const bailReasonMap = { tired:'時間・気力がない', mismatch:'思っていたのと違った', tempo:'テンポが合わなかった', other:'その他' };
+
+  if (paged.length === 0) {
+    el.innerHTML = '<div style="padding:16px 0;font-size:12px;color:var(--ink3);text-align:center;">まだ評価がありません</div>';
+    return;
   }
 
-  // ページ状態管理
-  window._pageState = window._pageState || {};
-}
-
-function changePage(nid, dir) {
-  window._pageState = window._pageState || {};
-  const cur = (window._pageState[nid] || 0);
-  const pages = document.querySelectorAll(`[id^="rp-${nid}-"]`);
-  const total = pages.length;
-  document.getElementById(`rp-${nid}-${cur}`).classList.remove('active');
-  const next = cur + dir;
-  document.getElementById(`rp-${nid}-${next}`).classList.add('active');
-  window._pageState[nid] = next;
-  document.getElementById(`pi-${nid}`).textContent = (next + 1) + ' / ' + total + 'ページ';
-  document.getElementById(`prev-${nid}`).disabled = next === 0;
-  document.getElementById(`next-${nid}`).disabled = next === total - 1;
-}
-
-function editCopy(novelId, currentCopy) {
-  document.getElementById('copy-display-' + novelId).style.display = 'none';
-  const editWrap = document.getElementById('copy-edit-' + novelId);
-  editWrap.style.display = 'block';
-  editWrap.innerHTML = `
-    <div class="copy-edit-wrap">
-      <input type="text" id="copy-input-${novelId}" value="${currentCopy}" maxlength="50">
-      <button class="copy-save" onclick="saveCopy('${novelId}')">保存</button>
-      <button class="copy-cancel" onclick="cancelEdit('${novelId}')">キャンセル</button>
+  el.innerHTML = paged.map(r => `
+    <div class="review-item">
+      <span class="r-badge ${r.rating === 'good' ? 'r-good' : r.rating === 'mid' ? 'r-mid' : 'r-bad'}">
+        ${r.rating === 'good' ? 'よかった' : r.rating === 'mid' ? '普通' : '期待外れ'}
+      </span>
+      <div class="r-body">
+        <div class="r-comment">${r.comment ? escHtml(r.comment) : '（コメントなし）'}</div>
+        <div class="r-meta">
+          ${r.is_completed ? '読了' : '途中離脱'}
+          ${!r.is_completed && r.bail_reason ? '<span class="bail-tag">理由：' + (bailReasonMap[r.bail_reason] || r.bail_reason) + '</span>' : ''}
+        </div>
+      </div>
     </div>
-    <div style="font-size:10px;color:var(--ink3);margin-top:3px;">50字以内</div>
-  `;
+  `).join('');
+
+  document.getElementById('page-info').textContent = (reviewPage + 1) + ' / ' + totalPages + 'ページ';
+  document.getElementById('prev-btn').disabled = reviewPage === 0;
+  document.getElementById('next-btn').disabled = reviewPage >= totalPages - 1;
 }
 
-async function saveCopy(novelId) {
-  const inp = document.getElementById('copy-input-' + novelId);
-  const newCopy = inp.value.trim();
-  if (!newCopy || [...newCopy].length > 50) { alert('50字以内で入力してください'); return; }
-  const { error } = await sb.from('novels').update({ catchcopy: newCopy }).eq('id', novelId).eq('author_id', currentUser.id);
-  if (error) { alert('保存に失敗しました'); return; }
-  document.getElementById('copy-display-' + novelId).innerHTML = escHtml(newCopy) + '<button class="edit-copy" onclick="editCopy(\'' + novelId + '\',\'' + escHtml(newCopy) + '\')">編集</button>';
-  document.getElementById('copy-display-' + novelId).style.display = 'block';
-  document.getElementById('copy-edit-' + novelId).style.display = 'none';
+function changeReviewPage(dir) {
+  reviewPage += dir;
+  renderReviews();
 }
 
-function cancelEdit(novelId) {
-  document.getElementById('copy-display-' + novelId).style.display = 'block';
-  document.getElementById('copy-edit-' + novelId).style.display = 'none';
+async function loadLinks() {
+  const { data } = await sb.from('profiles').select('*').eq('user_id', currentUser.id).single();
+  if (data) {
+    if (data.narou_url) document.getElementById('link-narou').value = data.narou_url;
+    if (data.kakuyomu_url) document.getElementById('link-kakuyomu').value = data.kakuyomu_url;
+    if (data.x_url) document.getElementById('link-x').value = data.x_url;
+  }
 }
 
-async function requestDelete(novelId, title) {
+async function saveLinks() {
+  const narou = document.getElementById('link-narou').value.trim() || null;
+  const kakuyomu = document.getElementById('link-kakuyomu').value.trim() || null;
+  const x = document.getElementById('link-x').value.trim() || null;
+  const errEl = document.getElementById('link-err');
+  const btn = document.querySelector('.save-btn');
+
+  if (narou && !narou.match(/^https?:\/\/(ncode|novel18)\.syosetu\.com\//)) { errEl.textContent = 'なろうのURLが正しくありません'; return; }
+  if (kakuyomu && !kakuyomu.match(/^https?:\/\/kakuyomu\.jp\//)) { errEl.textContent = 'カクヨムのURLが正しくありません'; return; }
+  if (x && !x.match(/^https?:\/\/(x|twitter)\.com\//)) { errEl.textContent = 'XのURLが正しくありません'; return; }
+
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = '保存中...';
+
+  await sb.from('profiles').upsert({ user_id: currentUser.id, narou_url: narou, kakuyomu_url: kakuyomu, x_url: x, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+
+  btn.disabled = false; btn.textContent = '保存しました ✓';
+  setTimeout(() => { btn.textContent = 'リンクを保存する'; }, 2000);
+}
+
+async function deleteNovel(id, title) {
   if (!confirm('「' + title + '」を削除しますか？\n\n評価データもすべて削除されます。この操作は取り消せません。')) return;
-  const btn = event.target;
-  btn.disabled = true; btn.textContent = '削除中...';
   try {
-    await sb.from('reading_lock').delete().eq('novel_id', novelId);
-    await sb.from('reports').delete().eq('novel_id', novelId);
-    await sb.from('reviews').delete().eq('novel_id', novelId);
-    await sb.from('novel_stats').delete().eq('novel_id', novelId);
-    const { error } = await sb.from('novels').delete().eq('id', novelId).eq('author_id', currentUser.id);
+    await sb.from('reading_lock').delete().eq('novel_id', id);
+    await sb.from('reports').delete().eq('novel_id', id);
+    await sb.from('reviews').delete().eq('novel_id', id);
+    await sb.from('novel_stats').delete().eq('novel_id', id);
+    const { error } = await sb.from('novels').delete().eq('id', id).eq('author_id', currentUser.id);
     if (error) throw error;
-    await loadDashboard();
+    showList();
+    await loadNovels();
   } catch(e) {
     alert('削除に失敗しました：' + e.message);
-    btn.disabled = false; btn.textContent = '削除申請';
   }
 }
 

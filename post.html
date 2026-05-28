@@ -65,14 +65,9 @@
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="index.html" class="nav-logo">Yonder<span>COMPLETED NOVELS ONLY</span></a>
-    <div class="nav-tabs">
-      <a href="index.html" class="nav-tab">読む</a>
-      <a href="post.html" class="nav-tab active">投稿する</a>
-      <a href="dashboard.html" class="nav-tab">ダッシュボード</a>
-      <button class="nav-tab logout" onclick="logout()">ログアウト</button>
-    </div>
+  <nav class="nav" style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;">
+    <a href="index.html" style="font-family:Noto Serif JP,serif;font-size:16px;font-weight:700;color:var(--acc);text-decoration:none;line-height:1.2;">Yonder<small style="font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;">COMPLETED NOVELS ONLY</small></a>
+    <button onclick="logout()" style="background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;">ログアウト</button>
   </nav>
 
   <div class="container">
@@ -162,5 +157,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/post.js"></script>
+  <nav style="display:flex;border-top:0.5px solid var(--border);background:#fff;position:sticky;bottom:0;">
+    <button onclick="location.href='index.html'" style="flex:1;padding:7px 0 10px;text-align:center;font-size:10px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;"><i class="ti ti-book" style="font-size:20px" aria-hidden="true"></i>読む</button>
+    <button style="flex:1;padding:7px 0 10px;text-align:center;font-size:10px;color:var(--acc);display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;"><i class="ti ti-upload" style="font-size:20px" aria-hidden="true"></i>投稿</button>
+    <button onclick="location.href='dashboard.html'" style="flex:1;padding:7px 0 10px;text-align:center;font-size:10px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;"><i class="ti ti-chart-bar" style="font-size:20px" aria-hidden="true"></i>統計</button>
+  </nav>
 </body>
 </html>
