@@ -13,3 +13,15 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 .nav-tab.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:500;}
 .nav-tab.logout{color:var(--ink3);}
 .nav-tab.logout:hover{color:#b85a42;}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .nav-tabs { gap: 0; }
+  .nav-tab { padding: 14px 8px; font-size: 11px; }
+  .nav-logo { font-size: 14px; }
+  .cards-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fav-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+  .container { padding: 16px 14px 60px; }
+  .read-body { font-size: 14px; }
+}
