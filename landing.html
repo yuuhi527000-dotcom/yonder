@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonder - 埋もれた名作と、出会う場所</title>
+  <meta name="description" content="完結済み小説を2択で選んで読む。ランキングに載らなくても、いい作品はいい。">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body{background:var(--bg);}
+    .hero{padding:48px 20px 36px;text-align:center;background:var(--bg);}
+    .hero-logo{font-family:'Noto Serif JP',serif;font-size:36px;font-weight:700;color:var(--acc);margin-bottom:6px;}
+    .hero-sub{font-size:10px;color:var(--ink3);letter-spacing:.18em;margin-bottom:24px;}
+    .hero-catch{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--ink);line-height:2;margin-bottom:32px;}
+    .cta-btn{display:block;width:100%;max-width:340px;margin:0 auto 12px;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;text-align:center;transition:opacity .15s;}
+    .cta-btn:hover{opacity:.88;}
+    .login-link{font-size:12px;color:var(--ink3);text-align:center;display:block;cursor:pointer;}
+    .login-link a{color:var(--acc);text-decoration:none;}
+
+    .section{padding:28px 20px;}
+    .section-title{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;margin-bottom:16px;}
+    .feat-item{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;}
+    .feat-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+    .feat-head{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+    .feat-desc{font-size:12px;color:var(--ink3);line-height:1.8;}
+
+    .novels-section{padding:0 20px 28px;}
+    .nc{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+    .cg{font-size:10px;font-weight:700;color:var(--acc2);margin-bottom:4px;}
+    .ct{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px;line-height:1.5;}
+    .cc{font-size:11px;color:var(--ink2);line-height:1.75;margin-bottom:8px;}
+    .cm{display:flex;gap:8px;}
+    .cm span{font-size:10px;color:var(--ink3);}
+    .more-txt{text-align:center;font-size:12px;color:var(--ink3);padding:8px 0 4px;}
+
+    .flow-section{padding:0 20px 28px;}
+    .flow-item{display:flex;gap:14px;padding:14px 0;border-bottom:0.5px solid var(--border);}
+    .flow-item:first-child{border-top:0.5px solid var(--border);}
+    .flow-num{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;color:var(--acc3);flex-shrink:0;width:28px;text-align:center;line-height:1.4;}
+    .flow-head{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px;}
+    .flow-desc{font-size:12px;color:var(--ink3);line-height:1.7;}
+
+    .cta2{padding:28px 20px 48px;background:#fff;border-top:0.5px solid var(--border);text-align:center;}
+    .cta2-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:500;color:var(--ink);margin-bottom:6px;}
+    .cta2-sub{font-size:12px;color:var(--ink3);margin-bottom:20px;line-height:1.8;}
+
+    .footer-links{display:flex;justify-content:center;gap:16px;padding:20px;border-top:0.5px solid var(--border);}
+    .footer-links a{font-size:11px;color:var(--ink3);text-decoration:none;}
+    .loading-novels{text-align:center;padding:20px;font-size:12px;color:var(--ink3);}
+
+    .divider{height:0.5px;background:var(--border);margin:0;}
+  </style>
+</head>
+<body>
+  <!-- ヒーロー -->
+  <div class="hero">
+    <div class="hero-logo">Yonder</div>
+    <div class="hero-sub">COMPLETED NOVELS ONLY</div>
+    <div class="hero-catch">ランキングに載らなくても、<br>いい作品はいい。<br>埋もれた名作と、出会う場所。</div>
+    <a href="login.html?tab=register" class="cta-btn">無料で始める →</a>
+    <span class="login-link">すでにアカウントをお持ちの方は<a href="login.html">ログイン</a></span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 特徴 -->
+  <div class="section">
+    <div class="section-title">Yonderの特徴</div>
+    <div class="feat-item"><div class="feat-icon">📖</div><div><div class="feat-head">完結済みのみ</div><div class="feat-desc">途中で終わっている作品はありません。必ず最後まで読めます。</div></div></div>
+    <div class="feat-item"><div class="feat-icon">🎯</div><div><div class="feat-head">2択で選ぶだけ</div><div class="feat-desc">キャッチコピーだけを見て直感で選ぶ。作者名もランキングも関係なし。</div></div></div>
+    <div class="feat-item"><div class="feat-icon">📊</div><div><div class="feat-head">作者にデータが届く</div><div class="feat-desc">どこで読者が離脱したかなど、なろう・カクヨムにはないデータを提供。</div></div></div>
+    <div class="feat-item" style="margin-bottom:0"><div class="feat-icon">❤️</div><div><div class="feat-head">お気に入り保存</div><div class="feat-desc">気に入った作品を最大4作品保存して繰り返し読めます。</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 登録作品サンプル -->
+  <div class="novels-section" style="padding-top:28px;">
+    <div class="section-title">登録されている作品（一部）</div>
+    <div id="sample-novels"><div class="loading-novels">読み込み中...</div></div>
+    <div class="more-txt" id="novel-count"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 使い方 -->
+  <div class="flow-section" style="padding-top:28px;">
+    <div class="section-title">使い方</div>
+    <div class="flow-item"><div class="flow-num">1</div><div><div class="flow-head">条件を選ぶ</div><div class="flow-desc">ジャンル・文字数・評価の高さで絞り込む</div></div></div>
+    <div class="flow-item"><div class="flow-num">2</div><div><div class="flow-head">2択でタップ</div><div class="flow-desc">キャッチコピーだけを見て気になった方をタップ。すぐ読み始められます。</div></div></div>
+    <div class="flow-item"><div class="flow-num">3</div><div><div class="flow-head">読む</div><div class="flow-desc">作者名は非表示。作品だけと向き合います。しおりで続きも読めます。</div></div></div>
+    <div class="flow-item"><div class="flow-num">4</div><div><div class="flow-head">評価する</div><div class="flow-desc">読了後に「よかった・普通・期待外れ」で評価。読了後に初めて作者のリンクが表示されます。</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 下部CTA -->
+  <div class="cta2">
+    <div class="cta2-title">さっそく使ってみる</div>
+    <div class="cta2-sub">登録無料・メールアドレスのみ</div>
+    <a href="login.html?tab=register" class="cta-btn">無料で始める →</a>
+    <span class="login-link" style="margin-top:10px;">すでにアカウントをお持ちの方は<a href="login.html">ログイン</a></span>
+  </div>
+
+  <div class="footer-links">
+    <a href="terms.html">利用規約</a>
+    <a href="privacy.html">プライバシーポリシー</a>
+    <a href="contact.html">お問い合わせ</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    (async () => {
+      // ログイン済みなら読む画面へ
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { window.location.href = 'index.html'; return; }
+
+      // 作品サンプルを取得（評価高い順3件）
+      const { data: novels, count } = await sb.from('novels')
+        .select('*', { count: 'exact' })
+        .eq('is_visible', true)
+        .order('bayes_score', { ascending: false })
+        .limit(3);
+
+      const el = document.getElementById('sample-novels');
+      if (!novels || novels.length === 0) {
+        el.innerHTML = '<div class="loading-novels">作品を準備中です</div>';
+        return;
+      }
+
+      el.innerHTML = novels.map(n => {
+        const charStr = n.char_count ? Math.round(n.char_count/10000*10)/10 + '万字' : '';
+        const pct = Math.round((n.bayes_score || 0.65) * 100);
+        return `
+          <div class="nc">
+            <div class="cg">${escHtml(n.genre||'')}${charStr ? ' · ' + charStr : ''}</div>
+            <div class="ct">${escHtml(n.title)}</div>
+            <div class="cc">${escHtml(n.catchcopy)}</div>
+            <div class="cm"><span>♥ ${pct}%</span><span>完結</span></div>
+          </div>
+        `;
+      }).join('');
+
+      if (count > 3) {
+        document.getElementById('novel-count').textContent = '他 ' + (count - 3) + ' 作品登録中';
+      }
+    })();
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
