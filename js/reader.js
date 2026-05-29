@@ -73,6 +73,21 @@ function updateSkipCount() {
   updateSkipCount();
   await loadNotices();
 
+  // ランディングから来た場合：その作品を読んで評価へ
+  const afterLoginNovel = localStorage.getItem('yonder_after_login_novel');
+  if (afterLoginNovel) {
+    localStorage.removeItem('yonder_after_login_novel');
+    const { data: novel } = await sb.from('novels').select('*').eq('id', afterLoginNovel).single();
+    if (novel) {
+      selectedNovel = novel; isFromFav = false;
+      await recordChosen(novel.id);
+      await sb.from('reading_lock').upsert({ user_id: currentUser.id, novel_id: novel.id, is_from_fav: false });
+      renderReadScreen(novel);
+      goTo('s-read');
+      return;
+    }
+  }
+
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
   if (lock) {
     const { data: novel } = await sb.from('novels').select('*').eq('id', lock.novel_id).single();

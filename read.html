@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html,body{height:100%;margin:0;padding:0;}
+    body{display:flex;flex-direction:column;background:var(--bg);}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;flex-shrink:0;}
+    .nav-logo{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;color:var(--acc);text-decoration:none;line-height:1.2;}
+    .nav-logo small{font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;}
+    .login-btn-nav{background:none;border:0.5px solid var(--acc2);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--acc);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;text-decoration:none;}
+    .main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+    .read-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:0.5px solid var(--border);background:#fff;}
+    .read-title-txt{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);flex:1;margin-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .bm-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 10px;font-size:11px;color:var(--ink3);cursor:pointer;display:flex;align-items:center;gap:3px;}
+    .prog-wrap{padding:0 16px;margin:6px 0;}
+    .prog-track{height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
+    .prog-bar{height:100%;background:var(--acc);width:0%;transition:width .3s;}
+    .read-body{padding:20px 18px;font-size:15px;line-height:2.2;color:var(--ink);overflow-y:auto;flex:1;}
+    .read-body p{margin-bottom:.8em;}
+    .chapter-sep{text-align:center;color:var(--ink3);font-size:13px;margin:24px 0;}
+    .read-footer{padding:16px;border-top:0.5px solid var(--border);background:var(--bg);flex-shrink:0;}
+    .eval-banner{background:var(--acc3);border:0.5px solid var(--acc2);border-radius:12px;padding:16px;text-align:center;}
+    .eval-banner-title{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px;}
+    .eval-banner-sub{font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.7;}
+    .login-eval-btn{display:block;width:100%;padding:13px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;text-align:center;transition:opacity .15s;}
+    .login-eval-btn:hover{opacity:.88;}
+    .back-link{display:block;text-align:center;font-size:12px;color:var(--ink3);margin-top:10px;cursor:pointer;text-decoration:none;}
+    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="landing.html" class="nav-logo">Yonder<small>COMPLETED NOVELS ONLY</small></a>
+    <a href="login.html" class="login-btn-nav">ログイン / 登録</a>
+  </nav>
+
+  <div class="main">
+    <div id="read-content" style="display:none;flex:1;display:flex;flex-direction:column;">
+      <div class="read-hdr">
+        <div class="read-title-txt" id="read-title"></div>
+        <button class="bm-btn" id="bookmark-btn" onclick="toggleBookmark()">
+          <i class="ti ti-bookmark" style="font-size:12px" aria-hidden="true"></i>しおり
+        </button>
+      </div>
+      <div class="prog-wrap"><div class="prog-track"><div class="prog-bar" id="prog-bar"></div></div></div>
+      <div class="read-body" id="read-body" onscroll="updProg()"></div>
+      <div class="read-footer">
+        <div class="eval-banner">
+          <div class="eval-banner-title">読み終わりましたか？</div>
+          <div class="eval-banner-sub">ログインして評価すると作者にフィードバックが届きます。<br>評価後に作者のリンクも表示されます。</div>
+          <a href="login.html?tab=register" class="login-eval-btn" onclick="saveForEval()">ログインして評価する →</a>
+          <a href="landing.html" class="back-link">← 作品一覧に戻る</a>
+        </div>
+      </div>
+    </div>
+    <div id="loading" class="loading">読み込み中...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    let novelData = null;
+    let bookmarkLine = null;
+
+    (async () => {
+      // ログイン済みならindex.htmlへ
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        // ログイン済みの場合はindex.htmlの読む画面へ
+        const novelId = new URLSearchParams(window.location.search).get('id');
+        if (novelId) localStorage.setItem('yonder_landing_novel', novelId);
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const novelId = new URLSearchParams(window.location.search).get('id');
+      if (!novelId) { window.location.href = 'landing.html'; return; }
+
+      const { data: novel } = await sb.from('novels').select('*').eq('id', novelId).eq('is_visible', true).single();
+      if (!novel) { window.location.href = 'landing.html'; return; }
+
+      novelData = novel;
+      document.title = novel.title + ' - Yonder';
+      document.getElementById('read-title').textContent = novel.title;
+
+      const body = document.getElementById('read-body');
+      const parts = novel.body.split('---CHAPTER---');
+      let lineIndex = 0;
+      parts.forEach((part, i) => {
+        if (i > 0) {
+          const sep = document.createElement('div');
+          sep.className = 'chapter-sep';
+          sep.textContent = '― 章 ―';
+          body.appendChild(sep);
+        }
+        part.split('\n').forEach(line => {
+          const p = document.createElement('p');
+          p.innerHTML = convertNarouMarkup(line);
+          p.dataset.line = lineIndex;
+          body.appendChild(p);
+          lineIndex++;
+        });
+      });
+
+      // しおり復元
+      const saved = localStorage.getItem('bookmark_guest_' + novelId);
+      if (saved) {
+        bookmarkLine = parseInt(saved);
+        updateBookmarkBtn(true);
+      }
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('read-content').style.display = 'flex';
+    })();
+
+    function saveForEval() {
+      if (novelData) {
+        localStorage.setItem('yonder_landing_novel', novelData.id);
+      }
+    }
+
+    function updProg() {
+      const el = document.getElementById('read-body');
+      const pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100 || 0;
+      document.getElementById('prog-bar').style.width = Math.min(100, Math.round(pct)) + '%';
+    }
+
+    function toggleBookmark() {
+      if (!novelData) return;
+      const body = document.getElementById('read-body');
+      if (bookmarkLine !== null) {
+        localStorage.removeItem('bookmark_guest_' + novelData.id);
+        bookmarkLine = null;
+        updateBookmarkBtn(false);
+      } else {
+        const ps = body.querySelectorAll('p[data-line]');
+        let nearestLine = 0;
+        ps.forEach(p => { if (p.offsetTop <= body.scrollTop + 60) nearestLine = parseInt(p.dataset.line); });
+        bookmarkLine = nearestLine;
+        localStorage.setItem('bookmark_guest_' + novelData.id, bookmarkLine);
+        updateBookmarkBtn(true);
+      }
+    }
+
+    function updateBookmarkBtn(active) {
+      const btn = document.getElementById('bookmark-btn');
+      if (!btn) return;
+      btn.style.borderColor = active ? 'var(--acc2)' : 'var(--border)';
+      btn.style.color = active ? 'var(--acc)' : 'var(--ink3)';
+      btn.style.background = active ? 'var(--acc3)' : 'none';
+      btn.innerHTML = active
+        ? '<i class="ti ti-bookmark" style="font-size:12px" aria-hidden="true"></i>しおり中'
+        : '<i class="ti ti-bookmark" style="font-size:12px" aria-hidden="true"></i>しおり';
+    }
+
+    function convertNarouMarkup(str) {
+      let s = String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      s = s.replace(/\|([^《]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+      s = s.replace(/([一-龯々〆〤ヶ]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+      s = s.replace(/《《([^》]+)》》/g, '<em class="boten">$1</em>');
+      return s;
+    }
+  </script>
+</body>
+</html>

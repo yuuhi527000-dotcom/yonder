@@ -133,11 +133,12 @@
         const charStr = n.char_count ? Math.round(n.char_count/10000*10)/10 + '万字' : '';
         const pct = Math.round((n.bayes_score || 0.65) * 100);
         return `
-          <div class="nc">
+          <div class="nc" onclick="readNovel('${n.id}')" style="cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--acc2)'" onmouseout="this.style.borderColor='var(--border)'">
             <div class="cg">${escHtml(n.genre||'')}${charStr ? ' · ' + charStr : ''}</div>
             <div class="ct">${escHtml(n.title)}</div>
             <div class="cc">${escHtml(n.catchcopy)}</div>
             <div class="cm"><span>♥ ${pct}%</span><span>完結</span></div>
+            <div style="font-size:10px;color:var(--acc);margin-top:6px;">タップして読む →</div>
           </div>
         `;
       }).join('');
@@ -146,6 +147,12 @@
         document.getElementById('novel-count').textContent = '他 ' + (count - 3) + ' 作品登録中';
       }
     })();
+
+    function readNovel(novelId) {
+      // 作品IDをlocalStorageに保存（ログイン後に評価画面へ誘導するため）
+      localStorage.setItem('yonder_landing_novel', novelId);
+      window.location.href = 'read.html?id=' + novelId;
+    }
 
     function escHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
