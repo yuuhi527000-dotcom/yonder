@@ -243,7 +243,7 @@ async function saveLinks() {
   const errEl = document.getElementById('link-err');
   const btn = document.querySelector('.save-btn');
 
-  if (narou && !narou.match(/^https?:\/\/(ncode|novel18)\.syosetu\.com\//)) { errEl.textContent = 'なろうのURLが正しくありません'; return; }
+  if (narou && !narou.match(/^https?:\/\/(ncode|novel18|mypage|www)?\.?syosetu\.com\//)) { errEl.textContent = 'なろうのURLが正しくありません'; return; }
   if (kakuyomu && !kakuyomu.match(/^https?:\/\/kakuyomu\.jp\//)) { errEl.textContent = 'カクヨムのURLが正しくありません'; return; }
   if (x && !x.match(/^https?:\/\/(x|twitter)\.com\//)) { errEl.textContent = 'XのURLが正しくありません'; return; }
 
