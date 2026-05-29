@@ -2,7 +2,6 @@ let currentUser = null;
 let novelA = null;
 let novelB = null;
 let selectedNovel = null;
-let skipLeft = 3;
 let bailEvalSel = null;
 let reasonSel = null;
 let evalSel = null;
@@ -11,12 +10,55 @@ let bailHeartSel = false;
 let isFromFav = false;
 let reportReasonSel = null;
 let userFavorites = [];
+let todaySeenIds = [];
+let searchCountToday = 0;
+const MAX_SEARCH_PER_DAY = 10;
+
+function getTodayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+function loadDailyState() {
+  const key = 'yonder_daily_' + currentUser.id;
+  const today = getTodayKey();
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || '{}');
+    if (saved.date === today) {
+      todaySeenIds = saved.seenIds || [];
+      searchCountToday = saved.searchCount || 0;
+    } else {
+      todaySeenIds = [];
+      searchCountToday = 0;
+      saveDailyState();
+    }
+  } catch(e) {
+    todaySeenIds = [];
+    searchCountToday = 0;
+  }
+}
+
+function saveDailyState() {
+  const key = 'yonder_daily_' + currentUser.id;
+  const today = getTodayKey();
+  localStorage.setItem(key, JSON.stringify({
+    date: today,
+    seenIds: todaySeenIds,
+    searchCount: searchCountToday
+  }));
+}
+
+function updateSearchCount() {
+  const el = document.getElementById('search-count');
+  if (el) el.textContent = '本日 ' + searchCountToday + ' / ' + MAX_SEARCH_PER_DAY + ' 回';
+}
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
   currentUser = session.user;
 
+  loadDailyState();
   await loadFavorites();
 
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
@@ -110,6 +152,13 @@ async function startFavRead(novel) {
 }
 
 async function startSearch() {
+  if (searchCountToday >= MAX_SEARCH_PER_DAY) {
+    alert('本日の検索回数（' + MAX_SEARCH_PER_DAY + '回）に達しました。\n0:00にリセットされます。');
+    return;
+  }
+  searchCountToday++;
+  saveDailyState();
+  updateSearchCount();
   goTo('s-pick');
   await loadCards();
 }
@@ -147,7 +196,9 @@ async function loadCards() {
 
   const { data: readNovels } = await sb.from('reviews').select('novel_id').eq('user_id', currentUser.id);
   const readIds = readNovels ? readNovels.map(r => r.novel_id) : [];
-  if (readIds.length > 0) query = query.not('id', 'in', '(' + readIds.join(',') + ')');
+  // 今日見た作品も除外
+  const excludeIds = [...new Set([...readIds, ...todaySeenIds])];
+  if (excludeIds.length > 0) query = query.not('id', 'in', '(' + excludeIds.join(',') + ')');
 
   const { data: novels } = await query.limit(20);
 
@@ -161,6 +212,10 @@ async function loadCards() {
   document.getElementById('back-btn').style.display = 'none';
   const shuffled = novels.sort(() => Math.random() - 0.5);
   novelA = shuffled[0]; novelB = shuffled[1];
+  // 今日見た作品として記録
+  if (!todaySeenIds.includes(novelA.id)) todaySeenIds.push(novelA.id);
+  if (!todaySeenIds.includes(novelB.id)) todaySeenIds.push(novelB.id);
+  saveDailyState();
   await recordShown(novelA.id);
   await recordShown(novelB.id);
 
