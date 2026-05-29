@@ -152,10 +152,6 @@
         <div style="font-size:10px;color:var(--ink3);margin-bottom:6px;">この範囲の作品を表示（誤差±5%）</div>
         <div class="eval-inputs"><input type="number" id="eval-min" value="0" min="0" max="100"> %<span style="color:var(--ink3)">〜</span><input type="number" id="eval-max" value="100" min="0" max="100"> %</div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:11px;color:var(--ink3)" id="search-count">本日 0 / 10 回</span>
-        <span style="font-size:10px;color:var(--ink3)">0:00にリセット</span>
-      </div>
       <button class="start-btn" onclick="startSearch()">この条件で探す →</button>
       <div class="fav-section">
         <div class="fav-header">
@@ -173,7 +169,7 @@
       <div style="display:flex;flex-direction:column;gap:8px;">
         <button class="main-btn back" id="back-btn" onclick="backToSetup()" style="display:none">← 条件設定に戻る</button>
         <div class="skip-row" id="skip-row">
-          <button class="skip-btn" onclick="doSkip()">どちらも気分じゃない</button>
+          <button class="skip-btn" id="skip-btn" onclick="doSkip()">どちらも気分じゃない</button>
           <span style="font-size:11px;color:var(--ink3)" id="skip-ct">※αバージョンのみ無制限</span>
         </div>
       </div>
