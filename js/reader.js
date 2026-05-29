@@ -11,8 +11,8 @@ let isFromFav = false;
 let reportReasonSel = null;
 let userFavorites = [];
 let todaySeenIds = [];
-let searchCountToday = 0;
-const MAX_SEARCH_PER_DAY = 10;
+let skipCountToday = 0;
+const MAX_SKIP_PER_DAY = 10;
 
 function getTodayKey() {
   const d = new Date();
@@ -26,15 +26,15 @@ function loadDailyState() {
     const saved = JSON.parse(localStorage.getItem(key) || '{}');
     if (saved.date === today) {
       todaySeenIds = saved.seenIds || [];
-      searchCountToday = saved.searchCount || 0;
+      skipCountToday = saved.skipCount || 0;
     } else {
       todaySeenIds = [];
-      searchCountToday = 0;
+      skipCountToday = 0;
       saveDailyState();
     }
   } catch(e) {
     todaySeenIds = [];
-    searchCountToday = 0;
+    skipCountToday = 0;
   }
 }
 
@@ -44,13 +44,23 @@ function saveDailyState() {
   localStorage.setItem(key, JSON.stringify({
     date: today,
     seenIds: todaySeenIds,
-    searchCount: searchCountToday
+    skipCount: skipCountToday
   }));
 }
 
-function updateSearchCount() {
-  const el = document.getElementById('search-count');
-  if (el) el.textContent = '本日 ' + searchCountToday + ' / ' + MAX_SEARCH_PER_DAY + ' 回';
+function updateSkipCount() {
+  const el = document.getElementById('skip-ct');
+  if (!el) return;
+  const remaining = MAX_SKIP_PER_DAY - skipCountToday;
+  if (remaining <= 0) {
+    el.textContent = '本日のスキップ上限に達しました';
+    const btn = document.getElementById('skip-btn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '.3'; btn.style.cursor = 'not-allowed'; }
+  } else {
+    el.textContent = 'スキップ残り ' + remaining + '回（0:00リセット）';
+    const btn = document.getElementById('skip-btn');
+    if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  }
 }
 
 (async () => {
@@ -60,6 +70,7 @@ function updateSearchCount() {
 
   loadDailyState();
   await loadFavorites();
+  updateSkipCount();
 
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
   if (lock) {
@@ -152,13 +163,10 @@ async function startFavRead(novel) {
 }
 
 async function startSearch() {
-  if (searchCountToday >= MAX_SEARCH_PER_DAY) {
-    alert('本日の検索回数（' + MAX_SEARCH_PER_DAY + '回）に達しました。\n0:00にリセットされます。');
+  if (skipCountToday >= MAX_SKIP_PER_DAY) {
+    alert('本日のスキップ回数（' + MAX_SKIP_PER_DAY + '回）に達しました。\n明日0:00にリセットされます。\nお気に入りの作品は引き続き読めます。');
     return;
   }
-  searchCountToday++;
-  saveDailyState();
-  updateSearchCount();
   goTo('s-pick');
   await loadCards();
 }
@@ -412,6 +420,13 @@ function jumpToBookmark() {
 
 // スキップ
 async function doSkip() {
+  if (skipCountToday >= MAX_SKIP_PER_DAY) {
+    alert('本日のスキップ回数（' + MAX_SKIP_PER_DAY + '回）に達しました。\n明日0:00にリセットされます。');
+    return;
+  }
+  skipCountToday++;
+  saveDailyState();
+  updateSkipCount();
   await loadCards();
 }
 
