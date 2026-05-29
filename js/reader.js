@@ -449,6 +449,9 @@ async function doSkip() {
     alert('本日のスキップ回数（' + MAX_SKIP_PER_DAY + '回）に達しました。\n明日0:00にリセットされます。');
     return;
   }
+  // どちらも選ばれなかったとして記録
+  if (novelA) await recordNotChosen(novelA.id);
+  if (novelB) await recordNotChosen(novelB.id);
   skipCountToday++;
   saveDailyState();
   updateSkipCount();
