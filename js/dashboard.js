@@ -123,10 +123,64 @@ async function openDetail(novelId) {
     </div>
     <div id="reviews-wrap"></div>
 
+    <div id="chapter-graph"></div>
     <button class="delete-btn" onclick="deleteNovel('${novel.id}','${escHtml(novel.title)}')">この作品を削除する</button>
   `;
 
   renderReviews();
+  await renderChapterGraph(novel, currentReviews);
+}
+
+async function renderChapterGraph(novel, reviews) {
+  const el = document.getElementById('chapter-graph');
+  if (!el) return;
+
+  const totalReaders = reviews.filter(r => r.is_completed || !r.is_completed).length;
+  // chapter_progressがある人のみカウント（新機能なので古い作品はデータなし）
+  const { data: progress } = await sb.from('chapter_progress')
+    .select('chapter_index')
+    .eq('novel_id', novel.id);
+
+  if (!progress || progress.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--ink3);padding:8px 0 16px;">この作品の読了率データはまだありません。<br>新規読者から記録が始まります。</div>';
+    return;
+  }
+
+  const milestones = [
+    { label: '0%', value: 0 },
+    { label: '25%', value: 25 },
+    { label: '50%', value: 50 },
+    { label: '75%', value: 75 },
+    { label: '読了', value: 100 },
+  ];
+
+  const total = progress.length;
+
+  const bars = milestones.map(m => {
+    const count = progress.filter(p => p.chapter_index >= m.value).length;
+    const pct = Math.round(count / total * 100);
+    const color = pct >= 70 ? '#7db89a' : pct >= 40 ? '#c4956a' : '#d49080';
+    return `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:11px;color:var(--ink3);width:36px;flex-shrink:0;text-align:right;">${m.label}</span>
+          <div style="flex:1;background:var(--border);border-radius:4px;height:14px;overflow:hidden;">
+            <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .5s;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:500;color:${color};width:40px;text-align:right;">${pct}%</span>
+        </div>
+        <div style="font-size:10px;color:var(--ink3);padding-left:46px;">${count}人が到達</div>
+      </div>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="margin-bottom:20px;padding-top:4px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink3);text-transform:uppercase;margin-bottom:14px;">読了率グラフ</div>
+      ${bars}
+      <div style="font-size:10px;color:var(--ink3);margin-top:4px;line-height:1.7;">※読み始めた${total}人のうち各地点まで到達した割合</div>
+    </div>
+  `;
 }
 
 function renderReviews() {

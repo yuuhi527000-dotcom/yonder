@@ -343,6 +343,7 @@ function renderReadScreen(novel) {
 
   document.getElementById('prog-bar').style.width = '0%';
   bookmarkLine = null;
+  lastRecordedMilestone = -1;
 
   // しおりジャンプバナー確認
   const savedBm = localStorage.getItem('bookmark_' + novel.id);
@@ -356,10 +357,33 @@ function renderReadScreen(novel) {
   }
 }
 
+let lastRecordedMilestone = -1;
+const MILESTONES = [0, 25, 50, 75]; // 読了は評価時に記録
+
 function updProg() {
   const el = document.getElementById('read-body');
-  const pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100 || 0;
-  document.getElementById('prog-bar').style.width = Math.min(100, Math.round(pct)) + '%';
+  const scrollPct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100 || 0;
+  document.getElementById('prog-bar').style.width = Math.min(100, Math.round(scrollPct)) + '%';
+
+  // 文字数ベースのマイルストーン到達を記録
+  if (!selectedNovel || isFromFav) return;
+  let reached = -1;
+  MILESTONES.forEach((m, i) => {
+    if (scrollPct >= m) reached = i;
+  });
+  if (reached > lastRecordedMilestone) {
+    lastRecordedMilestone = reached;
+    recordMilestoneProgress(MILESTONES[reached]);
+  }
+}
+
+async function recordMilestoneProgress(milestone) {
+  if (!currentUser || !selectedNovel) return;
+  await sb.from('chapter_progress').upsert({
+    novel_id: selectedNovel.id,
+    user_id: currentUser.id,
+    chapter_index: milestone
+  }, { onConflict: 'novel_id,user_id' });
 }
 
 // しおり
@@ -368,6 +392,7 @@ function toggleBookmark() {
   if (bookmarkLine !== null) {
     localStorage.removeItem('bookmark_' + selectedNovel.id);
     bookmarkLine = null;
+  lastRecordedMilestone = -1;
     hideBookmarkJump();
     updateBookmarkBtn(false);
   } else {
@@ -499,6 +524,7 @@ async function submitEval() {
   const btn = document.getElementById('eval-submit');
   btn.disabled = true; btn.textContent = '送信中...';
   await sb.from('reviews').insert({ novel_id: selectedNovel.id, user_id: currentUser.id, rating: evalSel, is_completed: true, comment });
+  await sb.from('chapter_progress').upsert({ novel_id: selectedNovel.id, user_id: currentUser.id, chapter_index: 100 }, { onConflict: 'novel_id,user_id' });
   await updateBayesScore(selectedNovel.id);
   if (heartSel) await addFavorite(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
