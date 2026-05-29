@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonder - 読んだ作品</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html,body{height:100%;margin:0;padding:0;}
+    body{display:flex;flex-direction:column;background:var(--bg);}
+    .main{flex:1;overflow-y:auto;padding:16px 16px 24px;}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;flex-shrink:0;}
+    .nav-logo{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;color:var(--acc);line-height:1.2;text-decoration:none;}
+    .nav-logo small{font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;}
+    .logout-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;}
+    .tab-bar{display:flex;border-top:0.5px solid var(--border);background:#fff;flex-shrink:0;}
+    .tab-item{flex:1;padding:10px 0 14px;text-align:center;font-size:12px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:5px;border:none;background:none;font-family:'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:color .15s;}
+    .tab-item i{font-size:24px;}
+    .tab-item.active{color:var(--acc);}
+    .page-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+    .page-sub{font-size:12px;color:var(--ink3);margin-bottom:20px;}
+    .history-item{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .hi-left{flex:1;min-width:0;}
+    .hi-title{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hi-copy{font-size:11px;color:var(--ink3);margin-bottom:6px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .hi-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .hi-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;}
+    .b-good{background:#f2faf6;color:#4a9b6f;}
+    .b-mid{background:var(--acc3);color:var(--acc);}
+    .b-bad{background:#fdf2ef;color:#b85a42;}
+    .hi-date{font-size:10px;color:var(--ink3);}
+    .hi-genre{font-size:10px;color:var(--ink3);}
+    .hi-status{font-size:10px;color:var(--ink3);}
+    .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .empty{text-align:center;padding:60px 20px;font-size:13px;color:var(--ink3);line-height:1.8;}
+    .filter-row{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
+    .filter-btn{border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--ink3);background:#fff;cursor:pointer;transition:all .15s;}
+    .filter-btn.active{background:var(--acc);border-color:var(--acc);color:#fff;}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Yonder<small>COMPLETED NOVELS ONLY</small></a>
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
+  </nav>
+  <div class="main">
+    <div class="page-title">読んだ作品</div>
+    <div class="page-sub">評価した作品の履歴です</div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+      <button class="filter-btn" onclick="setFilter('good',this)">よかった</button>
+      <button class="filter-btn" onclick="setFilter('mid',this)">普通</button>
+      <button class="filter-btn" onclick="setFilter('bad',this)">期待外れ</button>
+      <button class="filter-btn" onclick="setFilter('completed',this)">読了のみ</button>
+    </div>
+    <div id="history-list"><div class="loading">読み込み中...</div></div>
+  </div>
+  <nav class="tab-bar">
+    <button class="tab-item active" onclick="location.href='index.html'"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
+    <button class="tab-item" onclick="location.href='post.html'"><i class="ti ti-upload" aria-hidden="true"></i>投稿</button>
+    <button class="tab-item" onclick="location.href='dashboard.html'"><i class="ti ti-chart-bar" aria-hidden="true"></i>統計</button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    let currentUser = null;
+    let allReviews = [];
+    let currentFilter = 'all';
+
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      currentUser = session.user;
+      await loadHistory();
+    })();
+
+    async function logout() { await sb.auth.signOut(); window.location.href = 'login.html'; }
+
+    async function loadHistory() {
+      const { data: reviews } = await sb.from('reviews')
+        .select('*, novels(title, catchcopy, genre)')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      allReviews = reviews || [];
+      renderHistory();
+    }
+
+    function setFilter(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const el = document.getElementById('history-list');
+      let filtered = [...allReviews];
+      if (currentFilter === 'good') filtered = filtered.filter(r => r.rating === 'good');
+      else if (currentFilter === 'mid') filtered = filtered.filter(r => r.rating === 'mid');
+      else if (currentFilter === 'bad') filtered = filtered.filter(r => r.rating === 'bad');
+      else if (currentFilter === 'completed') filtered = filtered.filter(r => r.is_completed);
+
+      if (filtered.length === 0) {
+        el.innerHTML = '<div class="empty">まだ読んだ作品がありません。<br><a href="index.html" style="color:var(--acc)">作品を探す →</a></div>';
+        return;
+      }
+
+      const badgeMap = { good: ['b-good','よかった'], mid: ['b-mid','普通'], bad: ['b-bad','期待外れ'] };
+      el.innerHTML = filtered.map(r => {
+        const novel = r.novels;
+        if (!novel) return '';
+        const [cls, label] = badgeMap[r.rating] || ['b-mid','—'];
+        const date = new Date(r.created_at).toLocaleDateString('ja-JP');
+        return `
+          <div class="history-item">
+            <div class="hi-left">
+              <div class="hi-title">${escHtml(novel.title)}</div>
+              <div class="hi-copy">${escHtml(novel.catchcopy)}</div>
+              <div class="hi-meta">
+                <span class="hi-badge ${cls}">${label}</span>
+                <span class="hi-status">${r.is_completed ? '読了' : '途中離脱'}</span>
+                <span class="hi-genre">${novel.genre || ''}</span>
+                <span class="hi-date">${date}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

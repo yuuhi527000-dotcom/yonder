@@ -500,6 +500,7 @@ async function submitBail() {
   evalSel = null;
   document.getElementById('done-title').textContent = 'フィードバックありがとうございます';
   document.getElementById('done-sub').textContent = 'あなたの評価が作者に届きます';
+  await sendNotifyEmail(selectedNovel, bailEvalSel, comment);
   await showDone();
 }
 
@@ -531,6 +532,8 @@ async function submitEval() {
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
   document.getElementById('done-title').textContent = 'ありがとうございます';
   document.getElementById('done-sub').textContent = 'あなたの評価が次の作家さんに届きます';
+  // 作者にメール通知
+  await sendNotifyEmail(selectedNovel, evalSel, comment);
   await showDone();
 }
 
@@ -574,6 +577,37 @@ async function showDone() {
     links.innerHTML = html;
   }
 
+  // メール通知
+async function sendNotifyEmail(novel, rating, comment) {
+  if (!novel) return;
+  try {
+    // 作者のメールアドレスを取得
+    const { data: authorData } = await sb.from('profiles').select('notification_email').eq('user_id', novel.author_id).single();
+    const email = authorData && authorData.notification_email;
+    if (!email) return;
+
+    await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        authorEmail: email,
+        novelTitle: novel.title,
+        rating,
+        comment: comment || null
+      })
+    });
+  } catch(e) {
+    console.log('notify error:', e);
+  }
+}
+
+// シェアボタン表示
+  const shareBtn = document.getElementById('share-btn');
+  if (shareBtn && selectedNovel && evalSel === 'good') {
+    shareBtn.style.display = 'inline-block';
+  } else if (shareBtn) {
+    shareBtn.style.display = 'none';
+  }
   resetUI();
   goTo('s-done');
 }
@@ -591,6 +625,38 @@ function resetUI() {
   if (hi) hi.style.color = 'var(--acc)';
   const bhi = document.getElementById('bail-heart-icon');
   if (bhi) bhi.style.color = 'var(--acc)';
+}
+
+// メール通知
+async function sendNotifyEmail(novel, rating, comment) {
+  if (!novel) return;
+  try {
+    // 作者のメールアドレスを取得
+    const { data: authorData } = await sb.from('profiles').select('notification_email').eq('user_id', novel.author_id).single();
+    const email = authorData && authorData.notification_email;
+    if (!email) return;
+
+    await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        authorEmail: email,
+        novelTitle: novel.title,
+        rating,
+        comment: comment || null
+      })
+    });
+  } catch(e) {
+    console.log('notify error:', e);
+  }
+}
+
+// シェア
+function shareToX() {
+  if (!selectedNovel) return;
+  const text = '「' + selectedNovel.title + '」を読みました。\n\n' + selectedNovel.catchcopy + '\n\n#Yonder #小説\nyonder.kotobakagami.com';
+  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
 }
 
 // 通報

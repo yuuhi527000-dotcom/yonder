@@ -96,9 +96,15 @@ async function openDetail(novelId) {
     </div>
     <div class="stats-grid">
       <div class="stat"><div class="stat-n">${completed}</div><div class="stat-l">読了数</div></div>
+      <div class="stat"><div class="stat-n">${total > 0 ? Math.round(completed/total*100) : 0}%</div><div class="stat-l">読了率</div></div>
       <div class="stat"><div class="stat-n" style="color:#4a9b6f">${good}</div><div class="stat-l">よかった</div></div>
       <div class="stat"><div class="stat-n" style="color:var(--acc2)">${mid}</div><div class="stat-l">普通</div></div>
+    </div>
+    <div class="stats-grid">
       <div class="stat"><div class="stat-n" style="color:#b85a42">${bad}</div><div class="stat-l">期待外れ</div></div>
+      <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">総評価数</div></div>
+      <div class="stat"></div>
+      <div class="stat"></div>
     </div>
 
     ${total > 0 ? `
@@ -226,6 +232,7 @@ async function loadLinks() {
     if (data.narou_url) document.getElementById('link-narou').value = data.narou_url;
     if (data.kakuyomu_url) document.getElementById('link-kakuyomu').value = data.kakuyomu_url;
     if (data.x_url) document.getElementById('link-x').value = data.x_url;
+    if (data.notification_email) document.getElementById('notify-email').value = data.notification_email;
   }
 }
 
@@ -247,6 +254,15 @@ async function saveLinks() {
 
   btn.disabled = false; btn.textContent = '保存しました ✓';
   setTimeout(() => { btn.textContent = 'リンクを保存する'; }, 2000);
+}
+
+async function saveNotifyEmail() {
+  const email = document.getElementById('notify-email').value.trim() || null;
+  const noteEl = document.getElementById('notify-note');
+  await sb.from('profiles').upsert({ user_id: currentUser.id, notification_email: email, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  noteEl.textContent = '保存しました ✓';
+  noteEl.style.color = '#4a9b6f';
+  setTimeout(() => { noteEl.textContent = ''; }, 2000);
 }
 
 async function deleteNovel(id, title) {

@@ -130,6 +130,16 @@
       <div class="err" id="link-err"></div>
       <button class="save-btn" onclick="saveLinks()">リンクを保存する</button>
       <div class="save-note">投稿済みの作品には反映されません</div>
+
+      <div class="section-divider"></div>
+      <div class="section-label">評価通知メール</div>
+      <div class="section-hint">新しい評価が届いたときにメールでお知らせします。</div>
+      <div class="link-row">
+        <div class="link-label"><i class="ti ti-mail" style="font-size:14px" aria-hidden="true"></i>メール</div>
+        <input class="link-inp" type="email" id="notify-email" placeholder="通知を受け取るメールアドレス">
+      </div>
+      <button class="save-btn" onclick="saveNotifyEmail()" style="margin-top:4px;">通知設定を保存する</button>
+      <div class="save-note" id="notify-note"></div>
     </div>
 
     <!-- 詳細 -->
