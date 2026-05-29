@@ -2,7 +2,7 @@ const ADMIN_IDS = ['d425963b-9609-4272-9fce-5a22b52bf08b'];
 
 let currentUser = null;
 let allNovels = [];
-let novelSortKey = 'created_at';
+let novelSortKey = 'bayes_score';
 let novelSortAsc = false;
 let currentPage = 1;
 const PER_PAGE = 10;
@@ -33,6 +33,7 @@ function switchTab(tab) {
   event.target.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'reports') loadReports();
+  if (tab === 'notices') loadNoticesAdmin();
 }
 
 async function loadStats() {
@@ -248,6 +249,55 @@ async function handleReport(reportId, novelId, action) {
   await sb.from('reports').update({ status: action }).eq('id', reportId);
   if (action === 'resolved' && novelId) await sb.from('novels').update({ is_visible: false }).eq('id', novelId);
   await loadReports(); await loadStats();
+}
+
+async function loadNoticesAdmin() {
+  const el = document.getElementById('notices-list-admin');
+  const { data: notices } = await sb.from('notices').select('*').order('created_at', { ascending: false });
+
+  if (!notices || notices.length === 0) {
+    el.innerHTML = '<div class="loading">お知らせはありません</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>タイトル</th><th>本文</th><th>投稿日</th><th>操作</th></tr></thead>
+      <tbody>
+        ${notices.map(n => `
+          <tr>
+            <td style="font-weight:500">${escHtml(n.title)}</td>
+            <td style="font-size:12px;color:var(--ink3);max-width:300px;">${escHtml(n.body)}</td>
+            <td style="font-size:11px;color:var(--ink3);white-space:nowrap">${new Date(n.created_at).toLocaleDateString('ja-JP')}</td>
+            <td><button class="action-btn danger" onclick="deleteNotice('${n.id}')">削除</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function postNotice() {
+  const title = document.getElementById('notice-title').value.trim();
+  const body = document.getElementById('notice-body').value.trim();
+  const errEl = document.getElementById('notice-err');
+
+  if (!title) { errEl.textContent = 'タイトルを入力してください'; return; }
+  if (!body) { errEl.textContent = '本文を入力してください'; return; }
+
+  const { error } = await sb.from('notices').insert({ title, body });
+  if (error) { errEl.textContent = '投稿に失敗しました'; return; }
+
+  document.getElementById('notice-title').value = '';
+  document.getElementById('notice-body').value = '';
+  errEl.textContent = '';
+  await loadNoticesAdmin();
+}
+
+async function deleteNotice(id) {
+  if (!confirm('このお知らせを削除しますか？')) return;
+  await sb.from('notices').delete().eq('id', id);
+  await loadNoticesAdmin();
 }
 
 function closeModal() {

@@ -71,6 +71,7 @@ function updateSkipCount() {
   loadDailyState();
   await loadFavorites();
   updateSkipCount();
+  await loadNotices();
 
   const { data: lock } = await sb.from('reading_lock').select('*').eq('user_id', currentUser.id).single();
   if (lock) {
@@ -682,4 +683,62 @@ async function submitReport() {
   btn.disabled = true; btn.textContent = '通報する';
   alert('通報を受け付けました。');
   goTo('s-read');
+}
+
+// お知らせ
+let noticesLoaded = false;
+
+async function loadNotices() {
+  const { data: notices } = await sb.from('notices')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  const lastSeen = localStorage.getItem('yonder_last_notice_' + currentUser.id);
+  const hasUnread = notices && notices.length > 0 && (!lastSeen || notices[0].created_at > lastSeen);
+
+  const badge = document.getElementById('bell-badge');
+  if (badge) badge.style.display = hasUnread ? 'block' : 'none';
+
+  const list = document.getElementById('notices-list');
+  if (!list) return;
+
+  if (!notices || notices.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--ink3);">お知らせはありません</div>';
+    return;
+  }
+
+  list.innerHTML = notices.map(n => `
+    <div style="padding:14px 16px;border-bottom:0.5px solid var(--border);">
+      <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">${escHtml(n.title)}</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.8;margin-bottom:4px;">${escHtml(n.body)}</div>
+      <div style="font-size:10px;color:var(--ink3);">${new Date(n.created_at).toLocaleDateString('ja-JP')}</div>
+    </div>
+  `).join('');
+}
+
+function toggleNotices() {
+  const panel = document.getElementById('notices-panel');
+  const overlay = document.getElementById('notices-overlay');
+  const isOpen = panel.style.display !== 'none';
+
+  if (isOpen) {
+    panel.style.display = 'none';
+    overlay.style.display = 'none';
+  } else {
+    panel.style.display = 'block';
+    overlay.style.display = 'block';
+    if (!noticesLoaded) {
+      noticesLoaded = true;
+      loadNotices();
+    }
+    // 既読にする
+    sb.from('notices').select('created_at').order('created_at', { ascending: false }).limit(1).single().then(({ data }) => {
+      if (data) {
+        localStorage.setItem('yonder_last_notice_' + currentUser.id, data.created_at);
+        const badge = document.getElementById('bell-badge');
+        if (badge) badge.style.display = 'none';
+      }
+    });
+  }
 }
