@@ -84,7 +84,7 @@ function updateSkipCount() {
     }
   }
 
-  document.getElementById('skip-ct').textContent = '※αバージョンのみ無制限';
+  updateSkipCount();
   renderFavorites();
 })();
 
