@@ -135,6 +135,7 @@ async function openDetail(novelId) {
 
   renderReviews();
   await renderChapterGraph(novel, currentReviews);
+  await renderInquirySection();
 }
 
 async function renderChapterGraph(novel, reviews) {
@@ -283,4 +284,103 @@ async function deleteNovel(id, title) {
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 問い合わせ機能
+let currentInquiry = null;
+
+async function renderInquirySection() {
+  const el = document.getElementById('inquiry-section');
+  if (!el) return;
+
+  const { data: inquiries } = await sb.from('inquiries')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('status', 'open')
+    .order('created_at', { ascending: false });
+
+  currentInquiry = inquiries && inquiries.length > 0 ? inquiries[0] : null;
+
+  let html = '<div class="section-divider"></div><div class="section-label">管理者への問い合わせ</div>';
+
+  if (currentInquiry) {
+    const { data: messages } = await sb.from('inquiry_messages')
+      .select('*')
+      .eq('inquiry_id', currentInquiry.id)
+      .order('created_at', { ascending: true });
+
+    const msgsHTML = (messages || []).map(m => {
+      const isAdmin = m.sender_type === 'admin';
+      const date = new Date(m.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+      return `
+        <div style="display:flex;flex-direction:column;margin-bottom:2px;">
+          ${isAdmin ? `
+            <div style="background:var(--acc3);color:var(--ink);padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.7;max-width:82%;">${escHtml(m.body)}</div>
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:6px;padding-left:4px;">管理者 · ${date}</div>
+          ` : `
+            <div style="background:var(--acc);color:#fff;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.7;max-width:82%;align-self:flex-end;">${escHtml(m.body)}</div>
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:6px;text-align:right;padding-right:4px;">あなた · ${date}</div>
+          `}
+        </div>
+      `;
+    }).join('');
+
+    html += `
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:0.5px solid var(--border);">
+          <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);flex:1;">${escHtml(currentInquiry.title)}</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:#fdf2ef;color:#b85a42;">対応中</span>
+            <button onclick="resolveInquiry('${currentInquiry.id}')" style="font-size:10px;padding:3px 9px;background:none;border:0.5px solid #a8d5b5;border-radius:20px;color:#4a9b6f;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;">✓ 解決済み</button>
+          </div>
+        </div>
+        <div style="padding:11px 13px;display:flex;flex-direction:column;">${msgsHTML}</div>
+        <div style="display:flex;gap:6px;align-items:flex-end;border-top:0.5px solid var(--border);padding:10px 13px;">
+          <textarea id="inquiry-reply" placeholder="メッセージを入力..." style="flex:1;padding:6px 9px;border:0.5px solid var(--border);border-radius:8px;font-size:12px;resize:none;height:36px;background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;"></textarea>
+          <button onclick="sendInquiryMessage()" style="padding:7px 12px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;">送信</button>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+    <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:0.5px solid var(--border);">
+        <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);">新しい問い合わせを送る</div>
+        <span style="font-size:10px;background:var(--bg);color:var(--ink3);padding:2px 7px;border-radius:20px;">任意</span>
+      </div>
+      <div style="padding:11px 13px;">
+        <input type="text" id="new-inquiry-title" placeholder="件名（例：コメント通報について）" style="width:100%;padding:8px 11px;border:0.5px solid var(--border);border-radius:9px;font-size:12px;color:var(--ink);background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;margin-bottom:8px;">
+        <textarea id="new-inquiry-body" placeholder="管理者への問い合わせ内容を入力してください" style="width:100%;padding:8px 11px;border:0.5px solid var(--border);border-radius:9px;font-size:12px;resize:vertical;min-height:72px;background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.7;margin-bottom:10px;display:block;"></textarea>
+        <button onclick="sendNewInquiry()" style="width:100%;padding:11px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;cursor:pointer;">問い合わせを送る</button>
+      </div>
+    </div>
+  `;
+
+  el.innerHTML = html;
+}
+
+async function sendInquiryMessage() {
+  if (!currentInquiry) return;
+  const body = document.getElementById('inquiry-reply').value.trim();
+  if (!body) return;
+  await sb.from('inquiry_messages').insert({ inquiry_id: currentInquiry.id, sender_type: 'user', body });
+  await renderInquirySection();
+}
+
+async function sendNewInquiry() {
+  const title = document.getElementById('new-inquiry-title').value.trim();
+  const body = document.getElementById('new-inquiry-body').value.trim();
+  if (!title) { alert('件名を入力してください'); return; }
+  if (!body) { alert('内容を入力してください'); return; }
+  const { data: inq } = await sb.from('inquiries').insert({ user_id: currentUser.id, title, status: 'open' }).select().single();
+  if (inq) await sb.from('inquiry_messages').insert({ inquiry_id: inq.id, sender_type: 'user', body });
+  await renderInquirySection();
+}
+
+async function resolveInquiry(inquiryId) {
+  if (!confirm('解決済みにしますか？\n\nトーク内容が削除されます。この操作は取り消せません。')) return;
+  await sb.from('inquiries').update({ status: 'resolved' }).eq('id', inquiryId);
+  currentInquiry = null;
+  await renderInquirySection();
 }

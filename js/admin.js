@@ -34,6 +34,7 @@ function switchTab(tab) {
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'reports') loadReports();
   if (tab === 'notices') loadNoticesAdmin();
+  if (tab === 'inquiries') loadInquiriesAdmin();
 }
 
 async function loadStats() {
@@ -343,4 +344,88 @@ async function viewNovel(id) {
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 管理者：問い合わせ一覧
+let adminInquiryOpen = null;
+
+async function loadInquiriesAdmin() {
+  const el = document.getElementById('inquiries-list');
+  el.innerHTML = '<div class="loading">読み込み中...</div>';
+
+  const { data: inquiries } = await sb.from('inquiries')
+    .select('*, inquiry_messages(count)')
+    .order('created_at', { ascending: false });
+
+  if (!inquiries || inquiries.length === 0) {
+    el.innerHTML = '<div class="loading">問い合わせはありません</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>件名</th><th>状態</th><th>日付</th><th>操作</th></tr></thead>
+      <tbody>
+        ${inquiries.map(inq => `
+          <tr>
+            <td style="font-weight:500">${escHtml(inq.title)}</td>
+            <td><span class="badge ${inq.status === 'open' ? 'badge-report' : 'badge-hidden'}">${inq.status === 'open' ? '対応中' : '解決済み'}</span></td>
+            <td style="font-size:11px;color:var(--ink3)">${new Date(inq.created_at).toLocaleDateString('ja-JP')}</td>
+            <td><button class="action-btn success" onclick="openInquiryAdmin('${inq.id}')">返信</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div id="inquiry-admin-chat" style="margin-top:16px;"></div>
+  `;
+}
+
+async function openInquiryAdmin(inquiryId) {
+  adminInquiryOpen = inquiryId;
+  const { data: messages } = await sb.from('inquiry_messages')
+    .select('*')
+    .eq('inquiry_id', inquiryId)
+    .order('created_at', { ascending: true });
+
+  const { data: inq } = await sb.from('inquiries').select('*').eq('id', inquiryId).single();
+
+  const msgsHTML = (messages || []).map(m => {
+    const isAdmin = m.sender_type === 'admin';
+    const date = new Date(m.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+    return `
+      <div style="display:flex;flex-direction:column;margin-bottom:4px;">
+        ${isAdmin ? `
+          <div style="background:var(--acc);color:#fff;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.7;max-width:82%;align-self:flex-end;">${escHtml(m.body)}</div>
+          <div style="font-size:10px;color:var(--ink3);margin-bottom:4px;text-align:right;padding-right:4px;">管理者 · ${date}</div>
+        ` : `
+          <div style="background:var(--acc3);color:var(--ink);padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.7;max-width:82%;">${escHtml(m.body)}</div>
+          <div style="font-size:10px;color:var(--ink3);margin-bottom:4px;padding-left:4px;">ユーザー · ${date}</div>
+        `}
+      </div>
+    `;
+  }).join('');
+
+  const el = document.getElementById('inquiry-admin-chat');
+  el.innerHTML = `
+    <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--border);">
+        <div style="font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--ink);">${escHtml(inq.title)}</div>
+        <span class="badge ${inq.status === 'open' ? 'badge-report' : 'badge-hidden'}">${inq.status === 'open' ? '対応中' : '解決済み'}</span>
+      </div>
+      <div style="padding:14px 16px;display:flex;flex-direction:column;max-height:300px;overflow-y:auto;">${msgsHTML}</div>
+      ${inq.status === 'open' ? `
+        <div style="display:flex;gap:8px;align-items:flex-end;border-top:0.5px solid var(--border);padding:12px 16px;">
+          <textarea id="admin-reply-input" placeholder="返信を入力..." style="flex:1;padding:8px 11px;border:0.5px solid var(--border);border-radius:9px;font-size:13px;resize:none;height:40px;background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;"></textarea>
+          <button onclick="sendAdminReply('${inquiryId}')" style="padding:9px 16px;background:var(--acc);color:#fff;border:none;border-radius:9px;font-size:12px;cursor:pointer;">送信</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function sendAdminReply(inquiryId) {
+  const body = document.getElementById('admin-reply-input').value.trim();
+  if (!body) return;
+  await sb.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_type: 'admin', body });
+  await openInquiryAdmin(inquiryId);
 }
