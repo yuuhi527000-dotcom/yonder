@@ -43,18 +43,20 @@ async function loadNovels() {
     const total = novelReviews.length;
     const pct = Math.round((novel.bayes_score || 0.65) * 100);
     const badgeClass = pct >= 70 ? 'good' : 'mid';
-    const stats = novel.novel_stats;
     return `
-      <div class="novel-row" onclick="openDetail('${novel.id}')">
-        <div class="nrl">
-          <div class="nr-title">${escHtml(novel.title)}</div>
-          <div class="nr-meta">
-            <span>${novel.genre || '—'} · ${novel.char_count ? Math.round(novel.char_count/10000*10)/10+'万字' : '—'}</span>
-            <span>${total}件評価</span>
-          </div>
+      <div class="novel-row" style="cursor:default;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+          <div class="nr-title" style="margin-right:8px;">${escHtml(novel.title)}</div>
+          <span class="nr-badge ${badgeClass}" style="flex-shrink:0;">${pct}%</span>
         </div>
-        <span class="nr-badge ${badgeClass}">よかった ${pct}%</span>
-        <i class="ti ti-chevron-right" style="font-size:16px;color:var(--ink3);margin-left:6px" aria-hidden="true"></i>
+        <div class="nr-meta" style="margin-bottom:8px;">
+          <span>${novel.genre || '—'} · ${novel.char_count ? Math.round(novel.char_count/10000*10)/10+'万字' : '—'}</span>
+          <span>${total}件評価</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="openDetail('${novel.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink3)'"><i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i>統計を見る</button>
+          <button onclick="shareNovel('${novel.id}','${escHtml(novel.title).replace(/'/g,'\&#39;')}','${escHtml(novel.catchcopy).replace(/'/g,'\&#39;')}')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 12px;background:#000;border:none;border-radius:8px;font-size:11px;color:#fff;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;flex-shrink:0;transition:opacity .15s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"><i class="ti ti-brand-x" style="font-size:14px" aria-hidden="true"></i>シェア</button>
+        </div>
       </div>
     `;
   }).join('');
@@ -235,6 +237,12 @@ async function loadLinks() {
     if (data.x_url) document.getElementById('link-x').value = data.x_url;
     if (data.notification_email) document.getElementById('notify-email').value = data.notification_email;
   }
+}
+
+function shareNovel(id, title, catchcopy) {
+  const text = 'Yonderに投稿しました📖\n\n' + catchcopy + '\n\n#Yonder #なろう #小説家さんと繋がりたい\nyonder.kotobakagami.com';
+  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
 }
 
 async function saveLinks() {
