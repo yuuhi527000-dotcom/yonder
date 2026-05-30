@@ -73,7 +73,6 @@ function updateSkipCount() {
   updateSkipCount();
   await loadNotices();
 
-  // ランディングから来た場合：その作品を読んで評価へ
   const afterLoginNovel = localStorage.getItem('yonder_after_login_novel');
   if (afterLoginNovel) {
     localStorage.removeItem('yonder_after_login_novel');
@@ -114,7 +113,6 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
-// お気に入り読み込み
 async function loadFavorites() {
   const { data } = await sb.from('favorites').select('*, novels(*)').eq('user_id', currentUser.id).order('created_at', { ascending: false });
   userFavorites = data || [];
@@ -169,7 +167,6 @@ async function addFavorite(novelId) {
   return true;
 }
 
-// お気に入りから読む
 async function startFavRead(novel) {
   selectedNovel = novel;
   isFromFav = true;
@@ -220,7 +217,6 @@ async function loadCards() {
 
   const { data: readNovels } = await sb.from('reviews').select('novel_id').eq('user_id', currentUser.id);
   const readIds = readNovels ? readNovels.map(r => r.novel_id) : [];
-  // 今日見た作品も除外
   const excludeIds = [...new Set([...readIds, ...todaySeenIds])];
   if (excludeIds.length > 0) query = query.not('id', 'in', '(' + excludeIds.join(',') + ')');
 
@@ -236,7 +232,6 @@ async function loadCards() {
   document.getElementById('back-btn').style.display = 'none';
   const shuffled = novels.sort(() => Math.random() - 0.5);
   novelA = shuffled[0]; novelB = shuffled[1];
-  // 今日見た作品として記録
   if (!todaySeenIds.includes(novelA.id)) todaySeenIds.push(novelA.id);
   if (!todaySeenIds.includes(novelB.id)) todaySeenIds.push(novelB.id);
   saveDailyState();
@@ -264,19 +259,10 @@ function makeCard(novel, which) {
 }
 
 function convertNarouMarkup(str) {
-  // XSS対策で先にエスケープ
-  let s = String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;');
-
-  // ルビ記法: |単語《ルビ》 または 単語《ルビ》
+  let s = String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   s = s.replace(/\|([^《]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
   s = s.replace(/([一-龯々〆〤ヶ]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
-
-  // 傍点記法: 《《文字》》
   s = s.replace(/《《([^》]+)》》/g, '<em class="boten">$1</em>');
-
   return s;
 }
 
@@ -321,17 +307,14 @@ async function recordNotChosen(novelId) {
   }
 }
 
-// しおり
 let bookmarkLine = null;
+let lastRecordedMilestone = -1;
+const MILESTONES = [0, 25, 50, 75];
 
 function renderReadScreen(novel) {
   document.getElementById('read-title').textContent = novel.title;
-
-  // お気に入りバナー
   const banner = document.getElementById('fav-read-banner');
   if (banner) banner.style.display = isFromFav ? 'flex' : 'none';
-
-  // フッター切り替え
   const normalFooter = document.getElementById('read-footer-normal');
   const favFooter = document.getElementById('read-footer-fav');
   if (normalFooter) normalFooter.style.display = isFromFav ? 'none' : 'block';
@@ -361,7 +344,6 @@ function renderReadScreen(novel) {
   bookmarkLine = null;
   lastRecordedMilestone = -1;
 
-  // しおりジャンプバナー確認
   const savedBm = localStorage.getItem('bookmark_' + novel.id);
   if (savedBm) {
     bookmarkLine = parseInt(savedBm);
@@ -373,20 +355,13 @@ function renderReadScreen(novel) {
   }
 }
 
-let lastRecordedMilestone = -1;
-const MILESTONES = [0, 25, 50, 75]; // 読了は評価時に記録
-
 function updProg() {
   const el = document.getElementById('read-body');
   const scrollPct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100 || 0;
   document.getElementById('prog-bar').style.width = Math.min(100, Math.round(scrollPct)) + '%';
-
-  // 文字数ベースのマイルストーン到達を記録
   if (!selectedNovel || isFromFav) return;
   let reached = -1;
-  MILESTONES.forEach((m, i) => {
-    if (scrollPct >= m) reached = i;
-  });
+  MILESTONES.forEach((m, i) => { if (scrollPct >= m) reached = i; });
   if (reached > lastRecordedMilestone) {
     lastRecordedMilestone = reached;
     recordMilestoneProgress(MILESTONES[reached]);
@@ -395,20 +370,15 @@ function updProg() {
 
 async function recordMilestoneProgress(milestone) {
   if (!currentUser || !selectedNovel) return;
-  await sb.from('chapter_progress').upsert({
-    novel_id: selectedNovel.id,
-    user_id: currentUser.id,
-    chapter_index: milestone
-  }, { onConflict: 'novel_id,user_id' });
+  await sb.from('chapter_progress').upsert({ novel_id: selectedNovel.id, user_id: currentUser.id, chapter_index: milestone }, { onConflict: 'novel_id,user_id' });
 }
 
-// しおり
 function toggleBookmark() {
   if (!selectedNovel) return;
   if (bookmarkLine !== null) {
     localStorage.removeItem('bookmark_' + selectedNovel.id);
     bookmarkLine = null;
-  lastRecordedMilestone = -1;
+    lastRecordedMilestone = -1;
     hideBookmarkJump();
     updateBookmarkBtn(false);
   } else {
@@ -416,9 +386,7 @@ function toggleBookmark() {
     const scrollTop = body.scrollTop;
     const ps = body.querySelectorAll('p[data-line]');
     let nearestLine = 0;
-    ps.forEach(p => {
-      if (p.offsetTop <= scrollTop + 60) nearestLine = parseInt(p.dataset.line);
-    });
+    ps.forEach(p => { if (p.offsetTop <= scrollTop + 60) nearestLine = parseInt(p.dataset.line); });
     bookmarkLine = nearestLine;
     localStorage.setItem('bookmark_' + selectedNovel.id, bookmarkLine);
     showBookmarkJump();
@@ -430,28 +398,16 @@ function updateBookmarkBtn(active) {
   const btn = document.getElementById('bookmark-btn');
   if (!btn) return;
   if (active) {
-    btn.style.borderColor = 'var(--acc2)';
-    btn.style.color = 'var(--acc)';
-    btn.style.background = 'var(--acc3)';
+    btn.style.borderColor = 'var(--acc2)'; btn.style.color = 'var(--acc)'; btn.style.background = 'var(--acc3)';
     btn.innerHTML = '<i class="ti ti-bookmark" style="font-size:11px" aria-hidden="true"></i>しおり中';
   } else {
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--ink3)';
-    btn.style.background = 'none';
+    btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--ink3)'; btn.style.background = 'none';
     btn.innerHTML = '<i class="ti ti-bookmark" style="font-size:11px" aria-hidden="true"></i>しおり';
   }
 }
 
-function showBookmarkJump() {
-  const el = document.getElementById('bookmark-jump');
-  if (el) el.style.display = 'flex';
-}
-
-function hideBookmarkJump() {
-  const el = document.getElementById('bookmark-jump');
-  if (el) el.style.display = 'none';
-}
-
+function showBookmarkJump() { const el = document.getElementById('bookmark-jump'); if (el) el.style.display = 'flex'; }
+function hideBookmarkJump() { const el = document.getElementById('bookmark-jump'); if (el) el.style.display = 'none'; }
 function jumpToBookmark() {
   if (bookmarkLine === null) return;
   const body = document.getElementById('read-body');
@@ -459,13 +415,11 @@ function jumpToBookmark() {
   if (target) body.scrollTop = target.offsetTop - 20;
 }
 
-// スキップ
 async function doSkip() {
   if (skipCountToday >= MAX_SKIP_PER_DAY) {
     alert('本日のスキップ回数（' + MAX_SKIP_PER_DAY + '回）に達しました。\n明日0:00にリセットされます。');
     return;
   }
-  // どちらも選ばれなかったとして記録
   if (novelA) await recordNotChosen(novelA.id);
   if (novelB) await recordNotChosen(novelB.id);
   skipCountToday++;
@@ -480,7 +434,6 @@ function backToSetup() {
   goTo('s-setup');
 }
 
-// 途中離脱
 function selBailEval(el, key) {
   document.querySelectorAll('#bail-eval-grp .eval-opt').forEach(b => b.classList.remove('sel-good','sel-mid','sel-bad'));
   el.classList.add('sel-'+key);
@@ -502,9 +455,7 @@ function checkBailReady() {
 function toggleBailHeart() {
   bailHeartSel = !bailHeartSel;
   const icon = document.getElementById('bail-heart-icon');
-  if (icon) {
-    icon.style.color = bailHeartSel ? '#e05a7a' : 'var(--acc)';
-  }
+  if (icon) icon.style.color = bailHeartSel ? '#e05a7a' : 'var(--acc)';
 }
 
 async function submitBail() {
@@ -523,7 +474,6 @@ async function submitBail() {
   await showDone();
 }
 
-// 評価
 function selEval(el, key) {
   document.querySelectorAll('#eval-grp .eval-opt').forEach(b => b.classList.remove('sel-good','sel-mid','sel-bad'));
   el.classList.add('sel-'+key);
@@ -534,9 +484,7 @@ function selEval(el, key) {
 function toggleHeart() {
   heartSel = !heartSel;
   const icon = document.getElementById('heart-icon');
-  if (icon) {
-    icon.style.color = heartSel ? '#e05a7a' : 'var(--acc)';
-  }
+  if (icon) icon.style.color = heartSel ? '#e05a7a' : 'var(--acc)';
 }
 
 async function submitEval() {
@@ -551,12 +499,10 @@ async function submitEval() {
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
   document.getElementById('done-title').textContent = 'ありがとうございます';
   document.getElementById('done-sub').textContent = 'あなたの評価が次の作家さんに届きます';
-  // 作者にメール通知
   await sendNotifyEmail(selectedNovel, evalSel, comment);
   await showDone();
 }
 
-// お気に入りから読み終わった
 async function finishFavRead() {
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   resetUI();
@@ -580,47 +526,22 @@ async function showDone() {
   if (selectedNovel && (selectedNovel.pen_name || selectedNovel.narou_url || selectedNovel.kakuyomu_url || selectedNovel.x_url)) {
     let html = '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:14px;width:100%;max-width:300px;">';
     if (selectedNovel.pen_name) {
-      html += '<div style="font-family:Noto Serif JP,serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class=\"ti ti-user\" style=\"font-size:14px;color:var(--acc2)\" aria-hidden=\"true\"></i>' + escHtml(selectedNovel.pen_name) + '</div>';
+      html += '<div style="font-family:Noto Serif JP,serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-user" style="font-size:14px;color:var(--acc2)" aria-hidden="true"></i>' + escHtml(selectedNovel.pen_name) + '</div>';
     }
-    html += '<div style=\"display:flex;flex-direction:column;gap:7px;\">';
+    html += '<div style="display:flex;flex-direction:column;gap:7px;">';
     if (selectedNovel.narou_url) {
-      html += '<a href=\"' + escHtml(selectedNovel.narou_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-pencil\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">なろうで他の作品を読む</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+      html += '<a href="' + escHtml(selectedNovel.narou_url) + '" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;"><i class="ti ti-pencil" style="font-size:16px;color:var(--acc2);flex-shrink:0" aria-hidden="true"></i><div style="font-size:13px;color:var(--acc)">なろうで他の作品を読む</div></a>';
     }
     if (selectedNovel.kakuyomu_url) {
-      html += '<a href=\"' + escHtml(selectedNovel.kakuyomu_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-feather\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">カクヨムで他の作品を読む</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+      html += '<a href="' + escHtml(selectedNovel.kakuyomu_url) + '" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;"><i class="ti ti-feather" style="font-size:16px;color:var(--acc2);flex-shrink:0" aria-hidden="true"></i><div style="font-size:13px;color:var(--acc)">カクヨムで他の作品を読む</div></a>';
     }
     if (selectedNovel.x_url) {
-      html += '<a href=\"' + escHtml(selectedNovel.x_url) + '\" target=\"_blank\" class=\"done-link\" style=\"display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;\"><i class=\"ti ti-brand-x\" style=\"font-size:16px;color:var(--acc2);flex-shrink:0\" aria-hidden=\"true\"></i><div><div style=\"font-size:13px;color:var(--acc)\">作者のXを見る</div></div><i class=\"ti ti-chevron-right\" style=\"font-size:14px;color:var(--ink3);margin-left:auto\" aria-hidden=\"true\"></i></a>';
+      html += '<a href="' + escHtml(selectedNovel.x_url) + '" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:9px;background:#fff;text-decoration:none;"><i class="ti ti-brand-x" style="font-size:16px;color:var(--acc2);flex-shrink:0" aria-hidden="true"></i><div style="font-size:13px;color:var(--acc)">作者のXを見る</div></a>';
     }
     html += '</div></div>';
     links.innerHTML = html;
   }
 
-  // メール通知
-async function sendNotifyEmail(novel, rating, comment) {
-  if (!novel) return;
-  try {
-    // 作者のメールアドレスを取得
-    const { data: authorData } = await sb.from('profiles').select('notification_email').eq('user_id', novel.author_id).single();
-    const email = authorData && authorData.notification_email;
-    if (!email) return;
-
-    await fetch('/api/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        authorEmail: email,
-        novelTitle: novel.title,
-        rating,
-        comment: comment || null
-      })
-    });
-  } catch(e) {
-    console.log('notify error:', e);
-  }
-}
-
-// シェアボタン表示
   const shareBtn = document.getElementById('share-btn');
   if (shareBtn && selectedNovel && evalSel === 'good') {
     shareBtn.style.display = 'inline-block';
@@ -630,7 +551,6 @@ async function sendNotifyEmail(novel, rating, comment) {
   resetUI();
   goTo('s-done');
 }
-
 
 function resetUI() {
   bailEvalSel = null; reasonSel = null; evalSel = null; heartSel = false; bailHeartSel = false;
@@ -646,31 +566,22 @@ function resetUI() {
   if (bhi) bhi.style.color = 'var(--acc)';
 }
 
-// メール通知
 async function sendNotifyEmail(novel, rating, comment) {
   if (!novel) return;
   try {
-    // 作者のメールアドレスを取得
     const { data: authorData } = await sb.from('profiles').select('notification_email').eq('user_id', novel.author_id).single();
     const email = authorData && authorData.notification_email;
     if (!email) return;
-
     await fetch('/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        authorEmail: email,
-        novelTitle: novel.title,
-        rating,
-        comment: comment || null
-      })
+      body: JSON.stringify({ authorEmail: email, novelTitle: novel.title, rating, comment: comment || null })
     });
   } catch(e) {
     console.log('notify error:', e);
   }
 }
 
-// シェア
 function shareToX() {
   if (!selectedNovel) return;
   const text = '「' + selectedNovel.title + '」を読みました。\n\n' + selectedNovel.catchcopy + '\n\n#Yonder #小説\nyonder.kotobakagami.com';
@@ -678,7 +589,6 @@ function shareToX() {
   window.open(url, '_blank');
 }
 
-// 通報
 function selReportReason(el, key) {
   document.querySelectorAll('#report-reason-grp .reason-btn').forEach(b => b.classList.remove('sel'));
   el.classList.add('sel');
@@ -700,29 +610,20 @@ async function submitReport() {
   goTo('s-read');
 }
 
-// お知らせ
 let noticesLoaded = false;
 
 async function loadNotices() {
-  const { data: notices } = await sb.from('notices')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(5);
-
+  const { data: notices } = await sb.from('notices').select('*').order('created_at', { ascending: false }).limit(5);
   const lastSeen = localStorage.getItem('yonder_last_notice_' + currentUser.id);
   const hasUnread = notices && notices.length > 0 && (!lastSeen || notices[0].created_at > lastSeen);
-
   const badge = document.getElementById('bell-badge');
   if (badge) badge.style.display = hasUnread ? 'block' : 'none';
-
   const list = document.getElementById('notices-list');
   if (!list) return;
-
   if (!notices || notices.length === 0) {
     list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--ink3);">お知らせはありません</div>';
     return;
   }
-
   list.innerHTML = notices.map(n => `
     <div style="padding:14px 16px;border-bottom:0.5px solid var(--border);">
       <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">${escHtml(n.title)}</div>
@@ -736,18 +637,13 @@ function toggleNotices() {
   const panel = document.getElementById('notices-panel');
   const overlay = document.getElementById('notices-overlay');
   const isOpen = panel.style.display !== 'none';
-
   if (isOpen) {
     panel.style.display = 'none';
     overlay.style.display = 'none';
   } else {
     panel.style.display = 'block';
     overlay.style.display = 'block';
-    if (!noticesLoaded) {
-      noticesLoaded = true;
-      loadNotices();
-    }
-    // 既読にする
+    if (!noticesLoaded) { noticesLoaded = true; loadNotices(); }
     sb.from('notices').select('created_at').order('created_at', { ascending: false }).limit(1).single().then(({ data }) => {
       if (data) {
         localStorage.setItem('yonder_last_notice_' + currentUser.id, data.created_at);
