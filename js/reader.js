@@ -726,7 +726,7 @@ async function loadNotices() {
   list.innerHTML = notices.map(n => `
     <div style="padding:14px 16px;border-bottom:0.5px solid var(--border);">
       <div style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">${escHtml(n.title)}</div>
-      <div style="font-size:12px;color:var(--ink2);line-height:1.8;margin-bottom:4px;">${escHtml(n.body)}</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.8;margin-bottom:4px;white-space:pre-wrap;">${escHtml(n.body)}</div>
       <div style="font-size:10px;color:var(--ink3);">${new Date(n.created_at).toLocaleDateString('ja-JP')}</div>
     </div>
   `).join('');
