@@ -207,3 +207,78 @@ async function submitNovel() {
   document.getElementById('form-screen').style.display = 'none';
   document.getElementById('done-screen').style.display = 'block';
 }
+
+// 下書き保存
+function saveDraft() {
+  const title = document.getElementById('inp-title').value;
+  const copy = document.getElementById('inp-copy').value;
+  const body = document.getElementById('body-input').value;
+  const penname = document.getElementById('inp-penname') ? document.getElementById('inp-penname').value : '';
+  const narou = document.getElementById('inp-narou').value;
+  const kakuyomu = document.getElementById('inp-kakuyomu').value;
+  const x = document.getElementById('inp-x').value;
+
+  const draft = { title, copy, body, penname, genre: selectedGenre, narou, kakuyomu, x, savedAt: new Date().toISOString() };
+  localStorage.setItem('yonder_draft', JSON.stringify(draft));
+
+  const msg = document.getElementById('draft-msg');
+  if (msg) {
+    msg.textContent = '下書きを保存しました ✓';
+    setTimeout(() => { msg.textContent = ''; }, 2000);
+  }
+}
+
+// 下書き復元
+function loadDraft() {
+  try {
+    const saved = localStorage.getItem('yonder_draft');
+    if (!saved) return;
+    const draft = JSON.parse(saved);
+
+    const date = new Date(draft.savedAt).toLocaleDateString('ja-JP');
+    const restoreBar = document.getElementById('draft-restore-bar');
+    if (restoreBar) {
+      restoreBar.style.display = 'flex';
+      document.getElementById('draft-date').textContent = date + ' の下書きがあります';
+    }
+  } catch(e) {}
+}
+
+function restoreDraft() {
+  try {
+    const saved = localStorage.getItem('yonder_draft');
+    if (!saved) return;
+    const draft = JSON.parse(saved);
+
+    if (draft.title) document.getElementById('inp-title').value = draft.title;
+    if (draft.copy) document.getElementById('inp-copy').value = draft.copy;
+    if (draft.body) {
+      document.getElementById('body-input').value = draft.body;
+      renderLines(draft.body);
+    }
+    if (draft.penname && document.getElementById('inp-penname')) document.getElementById('inp-penname').value = draft.penname;
+    if (draft.narou) document.getElementById('inp-narou').value = draft.narou;
+    if (draft.kakuyomu) document.getElementById('inp-kakuyomu').value = draft.kakuyomu;
+    if (draft.x) document.getElementById('inp-x').value = draft.x;
+    if (draft.genre) {
+      selectedGenre = draft.genre;
+      document.querySelectorAll('.genre-tag').forEach(t => {
+        t.classList.toggle('sel', t.dataset.genre === draft.genre);
+      });
+    }
+
+    document.getElementById('draft-restore-bar').style.display = 'none';
+    checkSubmit();
+
+    const msg = document.getElementById('draft-msg');
+    if (msg) {
+      msg.textContent = '下書きを復元しました';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    }
+  } catch(e) {}
+}
+
+function discardDraft() {
+  localStorage.removeItem('yonder_draft');
+  document.getElementById('draft-restore-bar').style.display = 'none';
+}

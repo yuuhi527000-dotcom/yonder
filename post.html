@@ -70,6 +70,13 @@
     <button onclick="logout()" style="background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;">ログアウト</button>
   </nav>
 
+  <div id="draft-restore-bar" style="display:none;background:var(--acc3);border-bottom:0.5px solid var(--acc2);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;">
+    <span id="draft-date" style="font-size:12px;color:var(--ink2);"></span>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <button onclick="restoreDraft()" style="background:var(--acc);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;">復元する</button>
+      <button onclick="discardDraft()" style="background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;">削除</button>
+    </div>
+  </div>
   <div class="container">
     <div id="form-screen">
       <div class="page-title">作品を投稿する</div>
