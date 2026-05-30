@@ -39,12 +39,12 @@ function selGenre(el, genre) {
 
 // リンクバリデーション
 const RULES = {
-  narou:    v => /^https:\/\/(ncode|novel18)\.syosetu\.com\//.test(v),
+  narou:    v => /^https?:\/\/(ncode|novel18|mypage|www)?\.?syosetu\.com\//.test(v),
   kakuyomu: v => /^https:\/\/kakuyomu\.jp\//.test(v),
   x:        v => /^https:\/\/(x|twitter)\.com\//.test(v),
 };
 const HINTS = {
-  narou:    'ncode.syosetu.com または novel18.syosetu.com で始まるURLを入力してください',
+  narou:    'syosetu.com のURLを入力してください（作品ページ・マイページどちらでも可）',
   kakuyomu: 'kakuyomu.jp で始まるURLを入力してください',
   x:        'x.com または twitter.com で始まるURLを入力してください',
 };
