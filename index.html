@@ -382,9 +382,15 @@
   <script src="js/reader.js"></script>
   <script>
     function handleReadTab() {
-      // 読書中（s-readがactive）なら何もしない
-      const readScreen = document.getElementById('s-read');
-      if (readScreen && readScreen.classList.contains('active')) return;
+      // s-read・s-bail・s-eval・s-report・s-doneがactiveなら何もしない
+      const lockScreens = ['s-read','s-bail','s-eval','s-report','s-done'];
+      for (const id of lockScreens) {
+        const el = document.getElementById(id);
+        if (el && el.classList.contains('active')) return;
+      }
+      // s-setupが既にactiveなら何もしない
+      const setup = document.getElementById('s-setup');
+      if (setup && setup.classList.contains('active')) return;
       switchTab('read');
     }
 
