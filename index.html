@@ -149,6 +149,7 @@
   <div class="main">
     <!-- ① 設定 -->
     <div id="s-setup" class="screen active">
+      <div class="pc-left-col" id="setup-left">
       <div class="fsec"><div class="sl">ジャンル</div><div class="tag-group">
         <div class="tag sel" onclick="this.classList.toggle('sel')">恋愛</div>
         <div class="tag" onclick="this.classList.toggle('sel')">ファンタジー</div>
@@ -186,6 +187,7 @@
         </div>
         <div class="fav-grid" id="fav-grid"></div>
       </div>
+      </div><!-- end pc-right-col -->
     </div>
 
     <!-- ② 2択 -->
@@ -314,3 +316,148 @@
   </script>
 </body>
 </html>
+<style>
+/* PC nav links: スマホで非表示 */
+.nav-pc-link { display: none; }
+@media (min-width: 769px) {
+  .nav-pc-link { display: inline; }
+  /* ナビ */
+  .nav {
+    padding: 0 32px;
+    height: 56px;
+  }
+  .nav-logo { font-size: 20px; }
+  .nav-logo small { font-size: 9px; }
+  .logout-btn { padding: 6px 16px; font-size: 13px; }
+
+  /* タブバー非表示 */
+  .tab-bar { display: none !important; }
+
+  /* ナビにページリンクを追加 */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-pc-link {
+    font-size: 14px;
+    color: var(--ink3);
+    text-decoration: none;
+    transition: color .15s;
+  }
+  .nav-pc-link:hover { color: var(--acc); }
+  .nav-pc-link.active { color: var(--acc); font-weight: 500; }
+
+  /* mainエリア */
+  .main { padding-bottom: 0 !important; }
+
+  /* 読む画面以外：2カラムレイアウト */
+  #s-setup {
+    display: grid !important;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 56px);
+    padding: 0;
+    gap: 0;
+  }
+  #s-setup .fsec:nth-child(1),
+  #s-setup .fsec:nth-child(2),
+  #s-setup .fsec:nth-child(3),
+  #s-setup .start-btn,
+  #s-setup .fav-section {
+    /* 全部左カラムに入れる */
+  }
+
+  /* s-setupを2カラムにするためラッパーを使う */
+  .pc-left-col {
+    padding: 32px 28px;
+    background: #fff;
+    border-right: 0.5px solid var(--border);
+    overflow-y: auto;
+    max-height: calc(100vh - 56px);
+    position: sticky;
+    top: 56px;
+  }
+  .pc-right-col {
+    padding: 32px;
+    overflow-y: auto;
+  }
+
+  /* 2択カード */
+  #s-pick {
+    display: grid !important;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 56px);
+    padding: 0;
+    align-items: start;
+  }
+
+  /* 読む画面：全画面 */
+  #s-read {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 32px 60px !important;
+    width: 100%;
+  }
+  .read-hdr {
+    padding: 16px 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .read-title-txt { font-size: 20px; }
+  .read-body {
+    font-size: 17px !important;
+    line-height: 2.4 !important;
+    padding: 24px 0 !important;
+    font-family: 'Noto Serif JP', serif;
+    max-height: none !important;
+  }
+  .read-footer {
+    margin-top: 32px;
+    padding: 24px 0 !important;
+    border-top: 0.5px solid var(--border) !important;
+    text-align: center;
+    background: transparent !important;
+    position: static !important;
+  }
+  .to-eval-btn {
+    width: auto !important;
+    padding: 14px 48px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 評価・離脱画面 */
+  #s-eval, #s-bail, #s-report {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 48px 32px !important;
+  }
+  .section-head { font-size: 22px; }
+
+  /* 完了画面 */
+  #s-done {
+    padding: 80px 32px !important;
+  }
+  .done-title { font-size: 24px; }
+
+  /* カード */
+  .novel-card { padding: 20px 18px; }
+  .c-title { font-size: 15px; }
+  .c-copy { font-size: 13px; }
+
+  /* 評価オプション */
+  .eval-opt { padding: 18px 20px; }
+  .eval-text { font-size: 16px; }
+
+  /* お知らせパネル */
+  #notices-panel {
+    max-width: 480px;
+    left: auto !important;
+    right: 32px !important;
+    border-radius: 12px;
+    top: 60px !important;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  }
+}
+</style>

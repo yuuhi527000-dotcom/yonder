@@ -63,11 +63,26 @@
     textarea{width:100%;margin-top:8px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.9;min-height:120px;resize:vertical;}
     textarea:focus{outline:none;border-color:var(--acc2);}
   </style>
+
+<style>
+.nav-pc-link { display: none; font-size: 14px; color: var(--ink3); text-decoration: none; transition: color .15s; }
+.nav-pc-link.active { color: var(--acc); font-weight: 500; }
+.nav-pc-link:hover { color: var(--acc); }
+@media (min-width: 769px) {
+  .nav-pc-link { display: inline; }
+  .nav { padding: 0 32px; height: 56px; }
+}
+</style>
 </head>
 <body>
   <nav class="nav" style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;">
     <a href="index.html" style="font-family:Noto Serif JP,serif;font-size:16px;font-weight:700;color:var(--acc);text-decoration:none;line-height:1.2;">Yonder<small style="font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;">COMPLETED NOVELS ONLY</small></a>
-    <button onclick="logout()" style="background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;">ログアウト</button>
+    <div style="display:flex;align-items:center;gap:24px;">
+      <a href="index.html" class="nav-pc-link">読む</a>
+      <a href="post.html" class="nav-pc-link active">投稿</a>
+      <a href="dashboard.html" class="nav-pc-link">統計</a>
+      <button onclick="logout()" style="background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:Zen Kaku Gothic New,sans-serif;">ログアウト</button>
+    </div>
   </nav>
 
   <div id="draft-restore-bar" style="display:none;background:var(--acc3);border-bottom:0.5px solid var(--acc2);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;">
