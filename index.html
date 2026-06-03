@@ -385,5 +385,31 @@
   </script>
 
 
+
+  <script>
+  (function(){
+    if(window.innerWidth < 769) return;
+
+    // PC版：読む画面ではs-setupを非表示
+    function watchScreen(){
+      var observer = new MutationObserver(function(){
+        if(window.innerWidth < 769) return;
+        var setup = document.getElementById('s-setup');
+        var read = document.getElementById('s-read');
+        var isReading = read && read.classList.contains('active');
+        if(setup){
+          setup.style.visibility = isReading ? 'hidden' : 'visible';
+          setup.style.pointerEvents = isReading ? 'none' : 'auto';
+        }
+      });
+      observer.observe(document.querySelector('.main'), {childList:true, subtree:true, attributes:true, attributeFilter:['class']});
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(watchScreen, 500);
+    });
+  })();
+  </script>
+
 </body>
 </html>
