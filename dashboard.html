@@ -8,15 +8,15 @@
   <style>
     html,body{height:100%;margin:0;padding:0;}
     body{display:flex;flex-direction:column;background:var(--bg);}
-    .main{flex:1;overflow-y:auto;}
+    .main{flex:1;overflow-y:auto;padding-bottom:72px;}
     .nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;flex-shrink:0;}
     .nav-logo{font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;color:var(--acc);line-height:1.2;text-decoration:none;}
     .nav-logo small{font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;}
     .logout-btn{background:none;border:0.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;}
     .logout-btn:hover{border-color:var(--acc2);color:var(--acc);}
-    .tab-bar{display:flex;border-top:0.5px solid var(--border);background:#fff;flex-shrink:0;}
-    .tab-item{flex:1;padding:10px 0 14px;text-align:center;font-size:12px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:5px;border:none;background:none;font-family:'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:color .15s;}
-    .tab-item i{font-size:24px;}
+    .tab-bar{display:flex;border-top:0.5px solid var(--border);background:#fff;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:100;}
+    .tab-item{flex:1;padding:12px 0 16px;text-align:center;font-size:13px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;font-family:'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:color .15s;}
+    .tab-item i{font-size:28px;}
     .tab-item.active{color:var(--acc);}
 
     /* 一覧画面 */
