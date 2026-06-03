@@ -74,6 +74,18 @@
     .page-title{font-size:22px !important;}
   }
   </style>
+  <style>
+  .nav-pc-link{display:none;font-size:14px;color:var(--ink3);text-decoration:none;font-family:'Zen Kaku Gothic New',sans-serif;transition:color .15s;}
+  .nav-pc-link.active{color:var(--acc);font-weight:500;}
+  .nav-pc-link:hover{color:var(--acc);}
+  @media(min-width:769px){
+    .nav-pc-link{display:inline !important;}
+    .nav{padding:0 32px !important;height:56px !important;}
+    .container{max-width:680px !important;margin:0 auto !important;padding:48px 32px 80px !important;}
+    .page-title{font-size:22px !important;}
+    input[type=text],textarea{font-size:15px !important;}
+  }
+  </style>
 </head>
 <body>
   <nav class="nav" style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;">

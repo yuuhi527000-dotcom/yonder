@@ -137,6 +137,45 @@
     .stat{padding:14px !important;}
   }
   </style>
+  <style>
+  .nav-pc-link{display:none;font-size:14px;color:var(--ink3);text-decoration:none;font-family:'Zen Kaku Gothic New',sans-serif;transition:color .15s;}
+  .nav-pc-link.active{color:var(--acc);font-weight:500;}
+  .nav-pc-link:hover{color:var(--acc);}
+  @media(min-width:769px){
+    .nav{padding:0 32px !important;height:56px !important;}
+    .nav-logo{font-size:20px !important;}
+    .logout-btn{padding:6px 16px !important;font-size:13px !important;}
+    .nav-pc-link{display:inline !important;}
+    .tab-bar{display:none !important;}
+    .main{
+      display:grid !important;
+      grid-template-columns:360px 1fr !important;
+      min-height:calc(100vh - 56px) !important;
+      padding-bottom:0 !important;
+      align-items:start;
+    }
+    #view-list{
+      background:#fff !important;
+      border-right:0.5px solid var(--border) !important;
+      padding:28px 24px !important;
+      min-height:calc(100vh - 56px) !important;
+      overflow-y:auto !important;
+      position:sticky !important;
+      top:56px !important;
+    }
+    #view-detail{
+      padding:40px 48px !important;
+      display:block !important;
+    }
+    .page-title{font-size:20px !important;}
+    .detail-title{font-size:22px !important;}
+    .stat-n{font-size:26px !important;}
+    .stats-grid{gap:12px !important;}
+    .stat{padding:14px !important;}
+    .r-comment{font-size:14px !important;}
+    .back-link{font-size:14px !important;}
+  }
+  </style>
 </head>
 <body>
   <nav class="nav">
