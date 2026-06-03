@@ -93,6 +93,7 @@ function updateSkipCount() {
     if (novel) {
       selectedNovel = novel;
       isFromFav = lock.is_from_fav || false;
+      if (!isFromFav) document.body.classList.add('reading-lock');
       renderReadScreen(novel);
       goTo('s-read');
       return;
@@ -272,6 +273,7 @@ function escHtml(str) {
 
 async function goReadDirect(which, novel) {
   selectedNovel = novel; isFromFav = false;
+  document.body.classList.add('reading-lock');
   await recordChosen(novel.id);
   const notChosenNovel = which==='A' ? novelB : novelA;
   if (notChosenNovel) await recordNotChosen(notChosenNovel.id);
@@ -467,6 +469,7 @@ async function submitBail() {
   if (bailHeartSel) await addFavorite(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
+  document.body.classList.remove('reading-lock');
   evalSel = null;
   document.getElementById('done-title').textContent = 'フィードバックありがとうございます';
   document.getElementById('done-sub').textContent = 'あなたの評価が作者に届きます';
@@ -497,6 +500,7 @@ async function submitEval() {
   if (heartSel) await addFavorite(selectedNovel.id);
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
   if (selectedNovel) localStorage.removeItem('bookmark_' + selectedNovel.id);
+  document.body.classList.remove('reading-lock');
   document.getElementById('done-title').textContent = 'ありがとうございます';
   document.getElementById('done-sub').textContent = 'あなたの評価が次の作家さんに届きます';
   await sendNotifyEmail(selectedNovel, evalSel, comment);
@@ -505,6 +509,7 @@ async function submitEval() {
 
 async function finishFavRead() {
   await sb.from('reading_lock').delete().eq('user_id', currentUser.id);
+  document.body.classList.remove('reading-lock');
   resetUI();
   goTo('s-setup');
 }
