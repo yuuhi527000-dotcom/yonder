@@ -125,33 +125,70 @@
   .nav-pc-link{display:none;font-size:14px;color:var(--ink3);text-decoration:none;font-family:'Zen Kaku Gothic New',sans-serif;transition:color .15s;}
   .nav-pc-link.active{color:var(--acc);font-weight:500;}
   .nav-pc-link:hover{color:var(--acc);}
+
   @media(min-width:769px){
-    /* ナビ */
     .nav{padding:0 32px !important;height:56px !important;}
     .nav-logo{font-size:20px !important;}
     .logout-btn{padding:6px 16px !important;font-size:13px !important;}
     .nav-pc-link{display:inline !important;}
-    /* タブバー非表示 */
     .tab-bar{display:none !important;}
-    .main{padding-bottom:0 !important;}
-    /* 読む画面：全幅中央 */
+
+    /* mainを2カラムgridに */
+    .main{
+      display:grid !important;
+      grid-template-columns:300px 1fr !important;
+      grid-template-rows:1fr !important;
+      min-height:calc(100vh - 56px) !important;
+      padding-bottom:0 !important;
+      align-items:start !important;
+    }
+
+    /* 左カラム：s-setup常に表示 */
+    #s-setup{
+      grid-column:1 !important;
+      grid-row:1 !important;
+      display:flex !important;
+      flex-direction:column !important;
+      padding:28px 24px !important;
+      background:#fff !important;
+      border-right:0.5px solid var(--border) !important;
+      min-height:calc(100vh - 56px) !important;
+      overflow-y:auto !important;
+      position:sticky !important;
+      top:0 !important;
+    }
+
+    /* 右カラム：s-pick・s-read・s-eval等 */
+    #s-pick,#s-read,#s-bail,#s-eval,#s-report,#s-done{
+      grid-column:2 !important;
+      grid-row:1 !important;
+    }
+    #s-pick.active{display:flex !important;padding:28px 32px !important;}
+    .cards-row{gap:16px !important;}
+    .novel-card{padding:18px !important;}
+    .c-title{font-size:15px !important;}
+    .c-copy{font-size:13px !important;}
+
+    /* 読む画面 */
     #s-read.active{
-      max-width:720px !important;
-      margin:0 auto !important;
-      padding:40px 32px 60px !important;
+      display:flex !important;
+      padding:40px 10% 60px !important;
+      max-width:none !important;
     }
     .read-body{font-size:17px !important;line-height:2.4 !important;padding:28px 0 !important;font-family:'Noto Serif JP',serif !important;max-height:none !important;}
     .read-title-txt{font-size:20px !important;}
     .read-footer{padding:24px 0 !important;background:transparent !important;position:static !important;text-align:center;}
     .to-eval-btn{width:auto !important;padding:14px 48px !important;font-size:15px !important;}
-    /* 評価・完了：中央 */
+    .read-hdr{padding:16px 0 !important;}
+
+    /* 評価・完了 */
     #s-eval.active,#s-bail.active,#s-report.active,#s-done.active{
-      max-width:600px !important;
-      margin:0 auto !important;
-      padding:56px 32px !important;
+      display:flex !important;
+      padding:56px 15% !important;
     }
     .section-head{font-size:22px !important;}
     .done-title{font-size:24px !important;}
+
     /* お知らせパネル */
     #notices-panel{max-width:480px !important;left:auto !important;right:32px !important;border-radius:12px !important;top:60px !important;box-shadow:0 8px 32px rgba(0,0,0,.12) !important;}
   }
@@ -182,9 +219,6 @@
   <div id="notices-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;" onclick="toggleNotices()"></div>
 
   <div class="main">
-    <!-- PC 2カラムラッパー -->
-    <div id="pc-col-wrap" style="display:contents;">
-    <div id="pc-col-left" style="display:contents;">
     <!-- ① 設定 -->
     <div id="s-setup" class="screen active">
       <div class="fsec"><div class="sl">ジャンル</div><div class="tag-group">
@@ -226,8 +260,6 @@
       </div>
     </div>
 
-    </div><!-- /pc-col-left -->
-    <div id="pc-col-right" style="display:contents;">
     <!-- ② 2択 -->
     <div id="s-pick" class="screen">
       <p class="pick-hint">気になる方をタップしてすぐ読もう</p>
@@ -240,9 +272,6 @@
         </div>
       </div>
     </div>
-    </div><!-- /pc-col-right -->
-    </div><!-- /pc-col-wrap -->
-
     <!-- ③ 読む -->
     <div id="s-read" class="screen" style="padding:0;">
       <div id="fav-read-banner" class="fav-read-banner" style="display:none"><i class="ti ti-heart" style="font-size:13px" aria-hidden="true"></i>お気に入りから読んでいます</div>
@@ -355,62 +384,6 @@
     }
   </script>
 
-
-  <script>
-  (function(){
-    function applyPC(){
-      if(window.innerWidth < 769) return;
-      var wrap = document.getElementById('pc-col-wrap');
-      var left = document.getElementById('pc-col-left');
-      var right = document.getElementById('pc-col-right');
-      if(!wrap || wrap.dataset.pcApplied) return;
-      wrap.dataset.pcApplied = '1';
-
-      // wrapをgridに
-      wrap.style.cssText = 'display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 56px);';
-      left.style.cssText = 'background:#fff;border-right:0.5px solid #e8ddd3;padding:28px 24px;overflow-y:auto;';
-      right.style.cssText = 'padding:28px 32px;overflow-y:auto;';
-
-      // s-setupは常に左に表示（activeでなくても）
-      var setup = document.getElementById('s-setup');
-      setup.style.cssText = 'display:flex;flex-direction:column;padding:0;';
-
-      // s-pickは右に入れて非表示
-      var pick = document.getElementById('s-pick');
-      pick.style.padding = '0';
-    }
-
-    window.addEventListener('load', applyPC);
-    window.addEventListener('resize', applyPC);
-
-    // goToをPC用に拡張
-    document.addEventListener('DOMContentLoaded', function(){
-      setTimeout(function(){
-        if(window.innerWidth < 769) return;
-        var origGoTo = window.goTo;
-        window.goTo = function(id){
-          origGoTo(id);
-          if(window.innerWidth < 769) return;
-
-          var setup = document.getElementById('s-setup');
-          var pick = document.getElementById('s-pick');
-
-          if(id === 's-setup'){
-            // 左：setup表示、右：pick非表示
-            setup.style.cssText = 'display:flex;flex-direction:column;padding:0;';
-          } else if(id === 's-pick'){
-            // 左：setup表示、右：pick表示
-            setup.style.cssText = 'display:flex;flex-direction:column;padding:0;';
-            pick.classList.add('active');
-          } else {
-            // 読む・評価など：wrapを非表示にして全幅表示
-          }
-        };
-        applyPC();
-      }, 100);
-    });
-  })();
-  </script>
 
 </body>
 </html>
