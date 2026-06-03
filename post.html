@@ -63,21 +63,22 @@
     textarea{width:100%;margin-top:8px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.9;min-height:120px;resize:vertical;}
     textarea:focus{outline:none;border-color:var(--acc2);}
   </style>
-
-<style>
-.nav-pc-link { display: none; font-size: 14px; color: var(--ink3); text-decoration: none; transition: color .15s; }
-.nav-pc-link.active { color: var(--acc); font-weight: 500; }
-.nav-pc-link:hover { color: var(--acc); }
-@media (min-width: 769px) {
-  .nav-pc-link { display: inline; }
-  .nav { padding: 0 32px; height: 56px; }
-}
-</style>
+  <style>
+  .nav-pc-link{display:none;font-size:14px;color:var(--ink3);text-decoration:none;transition:color .15s;}
+  .nav-pc-link.active{color:var(--acc);font-weight:500;}
+  .nav-pc-link:hover{color:var(--acc);}
+  @media(min-width:769px){
+    .nav-pc-link{display:inline !important;}
+    .nav{padding:0 32px !important;height:56px !important;}
+    .container{max-width:680px !important;margin:0 auto !important;padding:40px 32px 80px !important;}
+    .page-title{font-size:22px !important;}
+  }
+  </style>
 </head>
 <body>
   <nav class="nav" style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--border);background:#fff;height:48px;">
     <a href="index.html" style="font-family:Noto Serif JP,serif;font-size:16px;font-weight:700;color:var(--acc);text-decoration:none;line-height:1.2;">Yonder<small style="font-size:8px;color:var(--ink3);display:block;letter-spacing:.1em;font-weight:400;">COMPLETED NOVELS ONLY</small></a>
-    <div style="display:flex;align-items:center;gap:24px;">
+    <div style="display:flex;align-items:center;gap:20px;">
       <a href="index.html" class="nav-pc-link">読む</a>
       <a href="post.html" class="nav-pc-link active">投稿</a>
       <a href="dashboard.html" class="nav-pc-link">統計</a>

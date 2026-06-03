@@ -92,55 +92,56 @@
     .loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
     .empty{text-align:center;padding:40px 20px;font-size:13px;color:var(--ink3);line-height:1.8;}
   </style>
+  <style>
+  .nav-pc-link{display:none;font-size:14px;color:var(--ink3);text-decoration:none;transition:color .15s;}
+  .nav-pc-link.active{color:var(--acc);font-weight:500;}
+  .nav-pc-link:hover{color:var(--acc);}
 
-<style>
-.nav-pc-link { display: none; font-size: 14px; color: var(--ink3); text-decoration: none; transition: color .15s; }
-.nav-pc-link.active { color: var(--acc); font-weight: 500; }
-.nav-pc-link:hover { color: var(--acc); }
-@media (min-width: 769px) {
-  .nav-pc-link { display: inline; }
-  .tab-bar { display: none !important; }
-  .nav { padding: 0 32px; height: 56px; }
-  .main { padding-bottom: 0 !important; }
-  #view-list {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    min-height: calc(100vh - 56px);
-    padding: 0;
-    gap: 0;
+  @media(min-width:769px){
+    .nav{padding:0 32px !important;height:56px !important;}
+    .nav-logo{font-size:20px !important;}
+    .logout-btn{padding:6px 16px !important;font-size:13px !important;}
+    .nav-pc-link{display:inline !important;}
+    .tab-bar{display:none !important;}
+    .main{padding-bottom:0 !important;}
+
+    /* 2カラムレイアウト */
+    .main{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      min-height:calc(100vh - 56px);
+      align-items:start;
+    }
+    #view-list{
+      grid-column:1;
+      background:#fff;
+      border-right:0.5px solid var(--border);
+      padding:28px 24px !important;
+      min-height:calc(100vh - 56px);
+      overflow-y:auto;
+      position:sticky;
+      top:56px;
+    }
+    #view-detail{
+      grid-column:2;
+      padding:40px 48px !important;
+      display:block;
+    }
+    .page-title{font-size:20px !important;}
+    .novel-row{padding:16px 18px !important;}
+    .nr-title{font-size:14px !important;}
+    .detail-title{font-size:22px !important;}
+    .stat-n{font-size:26px !important;}
+    .r-comment{font-size:14px !important;}
+    .stats-grid{gap:10px !important;}
+    .stat{padding:14px !important;}
   }
-  #novels-list-wrap {
-    padding: 32px 28px;
-    background: #fff;
-    border-right: 0.5px solid var(--border);
-    overflow-y: auto;
-    max-height: calc(100vh - 56px);
-    position: sticky;
-    top: 56px;
-  }
-  #links-settings-wrap {
-    padding: 32px 28px;
-    background: #fff;
-    border-right: 0.5px solid var(--border);
-    overflow-y: auto;
-  }
-  #view-detail {
-    padding: 40px 48px !important;
-    max-width: 800px;
-  }
-  .page-title { font-size: 20px; }
-  .novel-row { padding: 16px 18px; }
-  .nr-title { font-size: 15px; }
-  .detail-title { font-size: 22px !important; }
-  .stat-n { font-size: 28px !important; }
-  .r-comment { font-size: 14px !important; }
-}
-</style>
+  </style>
 </head>
 <body>
   <nav class="nav">
     <a href="index.html" class="nav-logo">Yonder<small>COMPLETED NOVELS ONLY</small></a>
-    <div style="display:flex;align-items:center;gap:24px;">
+    <div style="display:flex;align-items:center;gap:20px;">
       <a href="index.html" class="nav-pc-link">読む</a>
       <a href="post.html" class="nav-pc-link">投稿</a>
       <a href="dashboard.html" class="nav-pc-link active">統計</a>
@@ -151,11 +152,8 @@
   <div class="main">
     <!-- 一覧 -->
     <div id="view-list">
-      <div id="novels-list-wrap">
       <div class="page-title">あなたの作品</div>
       <div id="novels-list"><div class="loading">読み込み中...</div></div>
-      </div>
-      <div id="links-settings-wrap">
 
       <div class="section-divider"></div>
       <div class="section-label">リンク設定</div>
