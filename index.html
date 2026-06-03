@@ -372,7 +372,7 @@
   </div>
 
   <nav class="tab-bar">
-    <button class="tab-item active" onclick="switchTab('read')"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
+    <button class="tab-item active" onclick="handleReadTab()"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
     <button class="tab-item" onclick="location.href='post.html'"><i class="ti ti-upload" aria-hidden="true"></i>投稿</button>
     <button class="tab-item" onclick="location.href='dashboard.html'"><i class="ti ti-chart-bar" aria-hidden="true"></i>統計</button>
   </nav>
@@ -381,6 +381,13 @@
   <script src="js/supabase.js"></script>
   <script src="js/reader.js"></script>
   <script>
+    function handleReadTab() {
+      // 読書中（s-readがactive）なら何もしない
+      const readScreen = document.getElementById('s-read');
+      if (readScreen && readScreen.classList.contains('active')) return;
+      switchTab('read');
+    }
+
     function switchTab(tab) {
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
       event.currentTarget.classList.add('active');
