@@ -121,6 +121,247 @@
     .next-btn{padding:13px 32px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;}
     @media(max-width:480px){.read-body{font-size:14px;}.cards-row{gap:8px;}}
   </style>
+
+<style>
+/* ===== PC ONLY (769px+) ===== */
+.nav-pc-link { display: none; }
+
+@media (min-width: 769px) {
+  /* ナビ */
+  .nav { padding: 0 32px !important; height: 56px !important; }
+  .nav-logo { font-size: 20px !important; }
+  .nav-pc-link { display: inline !important; font-size: 14px; color: var(--ink3); text-decoration: none; transition: color .15s; }
+  .nav-pc-link:hover { color: var(--acc); }
+  .nav-pc-link.active { color: var(--acc); font-weight: 500; }
+  .logout-btn { padding: 6px 16px !important; font-size: 13px !important; }
+
+  /* タブバー非表示 */
+  .tab-bar { display: none !important; }
+
+  /* メインエリア */
+  .main { padding-bottom: 0 !important; display: flex; flex-direction: column; }
+
+  /* ===== 条件設定画面 ===== */
+  #s-setup.active {
+    display: grid !important;
+    grid-template-columns: 300px 1fr !important;
+    min-height: calc(100vh - 56px);
+    padding: 0 !important;
+    flex-direction: unset !important;
+  }
+  #setup-left {
+    padding: 28px 24px !important;
+    background: #fff !important;
+    border-right: 0.5px solid var(--border);
+    overflow-y: auto;
+    height: calc(100vh - 56px);
+  }
+  #setup-right {
+    padding: 28px 32px !important;
+    overflow-y: auto;
+    height: calc(100vh - 56px);
+  }
+  #setup-right .fav-section {
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+  #setup-right .fav-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  #s-setup .start-btn { font-size: 14px !important; }
+
+  /* ===== 2択画面 ===== */
+  #s-pick {
+    padding: 32px 48px !important;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  #s-pick .pick-hint { font-size: 14px !important; margin-bottom: 20px !important; }
+  #s-pick .cards-row { gap: 20px !important; margin-bottom: 20px !important; }
+  #s-pick .novel-card { padding: 20px 18px !important; }
+  #s-pick .c-title { font-size: 15px !important; }
+  #s-pick .c-copy { font-size: 13px !important; }
+
+  /* ===== 読む画面 ===== */
+  #s-read {
+    max-width: 720px !important;
+    margin: 0 auto !important;
+    width: 100%;
+    padding: 0 !important;
+  }
+  .read-hdr { padding: 16px 32px !important; }
+  .read-title-txt { font-size: 18px !important; }
+  .prog-wrap { padding: 0 32px !important; }
+  .read-body {
+    padding: 28px 32px !important;
+    font-size: 17px !important;
+    line-height: 2.4 !important;
+    font-family: 'Noto Serif JP', serif !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .read-footer {
+    padding: 24px 32px !important;
+    text-align: center;
+    background: transparent !important;
+    position: static !important;
+  }
+  .to-eval-btn { width: auto !important; padding: 14px 48px !important; font-size: 15px !important; }
+  .sub-btn { width: auto !important; padding: 12px 40px !important; }
+
+  /* ===== 評価・離脱・通報画面 ===== */
+  #s-eval, #s-bail, #s-report {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 48px 32px !important;
+    width: 100%;
+  }
+  .section-head { font-size: 20px !important; }
+  .eval-opt { padding: 16px 20px !important; }
+
+  /* ===== 完了画面 ===== */
+  #s-done { padding: 80px 32px !important; }
+  .done-title { font-size: 24px !important; }
+
+  /* お知らせパネル */
+  #notices-panel {
+    max-width: 420px;
+    left: auto !important;
+    right: 32px !important;
+    border-radius: 12px;
+    top: 60px !important;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  }
+}
+</style>
+
+  <style>
+  /* PC nav links: スマホで非表示 */
+  .nav-pc-link { display: none; font-size: 14px; color: var(--ink3); text-decoration: none; transition: color .15s; }
+  .nav-pc-link.active { color: var(--acc); font-weight: 500; }
+  .nav-pc-link:hover { color: var(--acc); }
+
+  @media (min-width: 769px) {
+    /* ナビ */
+    .nav { padding: 0 32px !important; height: 56px !important; }
+    .nav-logo { font-size: 20px !important; }
+    .nav-logo small { font-size: 9px !important; }
+    .logout-btn { padding: 6px 16px !important; font-size: 13px !important; }
+    .nav-pc-link { display: inline !important; }
+
+    /* タブバー非表示 */
+    .tab-bar { display: none !important; }
+
+    /* mainの余白解除 */
+    .main { padding-bottom: 0 !important; }
+
+    /* 条件設定画面：2カラム */
+    #s-setup.active {
+      display: grid !important;
+      grid-template-columns: 300px 1fr;
+      min-height: calc(100vh - 56px);
+      padding: 0 !important;
+      gap: 0;
+      align-items: start;
+    }
+    #s-setup .fsec,
+    #s-setup .eval-inputs,
+    #s-setup .start-btn,
+    #s-setup > a {
+      /* 左カラム内はそのまま */
+    }
+    /* 左カラム */
+    #setup-left-pc {
+      padding: 28px 24px;
+      background: #fff;
+      border-right: 0.5px solid var(--border);
+      min-height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    /* 右カラム */
+    #setup-right-pc {
+      padding: 28px 32px;
+      overflow-y: auto;
+    }
+
+    /* 2択画面：2カラム */
+    #s-pick.active {
+      display: grid !important;
+      grid-template-columns: 300px 1fr;
+      min-height: calc(100vh - 56px);
+      padding: 0 !important;
+      gap: 0;
+      align-items: start;
+    }
+    #pick-left-pc {
+      padding: 28px 24px;
+      background: #fff;
+      border-right: 0.5px solid var(--border);
+      min-height: calc(100vh - 56px);
+    }
+    #pick-right-pc {
+      padding: 28px 32px;
+    }
+
+    /* 読む画面：全画面中央 */
+    #s-read.active {
+      display: flex !important;
+      flex-direction: column;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 40px 32px 60px !important;
+    }
+    .read-title-txt { font-size: 20px !important; }
+    .read-body {
+      font-size: 17px !important;
+      line-height: 2.4 !important;
+      padding: 28px 0 !important;
+      font-family: 'Noto Serif JP', serif !important;
+      max-height: none !important;
+    }
+    .read-footer {
+      padding: 24px 0 !important;
+      background: transparent !important;
+      position: static !important;
+      text-align: center;
+    }
+    .to-eval-btn {
+      width: auto !important;
+      padding: 14px 48px !important;
+      font-size: 15px !important;
+    }
+    .sub-btn { max-width: 320px; margin: 0 auto; }
+
+    /* 評価・離脱画面 */
+    #s-eval.active, #s-bail.active, #s-report.active, #s-done.active {
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 56px 32px !important;
+    }
+    .section-head { font-size: 22px !important; }
+    .done-title { font-size: 24px !important; }
+
+    /* カード */
+    .novel-card { padding: 20px 18px !important; }
+    .c-title { font-size: 15px !important; }
+    .c-copy { font-size: 13px !important; }
+    .cards-row { gap: 16px !important; }
+
+    /* お知らせパネル */
+    #notices-panel {
+      max-width: 480px !important;
+      left: auto !important;
+      right: 32px !important;
+      border-radius: 12px !important;
+      top: 60px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
+    }
+  }
+  </style>
 </head>
 <body>
   <nav class="nav">
@@ -149,7 +390,7 @@
   <div class="main">
     <!-- ① 設定 -->
     <div id="s-setup" class="screen active">
-      <div class="pc-left-col" id="setup-left">
+      <div id="setup-left">
       <div class="fsec"><div class="sl">ジャンル</div><div class="tag-group">
         <div class="tag sel" onclick="this.classList.toggle('sel')">恋愛</div>
         <div class="tag" onclick="this.classList.toggle('sel')">ファンタジー</div>
@@ -172,6 +413,8 @@
         <div class="eval-inputs"><input type="number" id="eval-min" value="0" min="0" max="100"> %<span style="color:var(--ink3)">〜</span><input type="number" id="eval-max" value="100" min="0" max="100"> %</div>
       </div>
       <button class="start-btn" onclick="startSearch()">この条件で探す →</button>
+      </div><!-- /setup-left -->
+      <div id="setup-right">
       <a href="https://kotoba-kagami.vercel.app/" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--acc);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;text-decoration:none;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
         <span style="font-size:22px;flex-shrink:0;">🪞</span>
         <div style="flex:1;">
@@ -187,7 +430,6 @@
         </div>
         <div class="fav-grid" id="fav-grid"></div>
       </div>
-      </div><!-- end pc-right-col -->
     </div>
 
     <!-- ② 2択 -->
