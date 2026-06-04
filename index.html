@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yonder</title>
+    <script>
+  // ページ読み込み直後にロック状態を即時適用（reader.js実行前）
+  (function(){
+    try {
+      var uid = null;
+      // supabaseのセッションからuidを取得できないので別の方法で
+      // reading-lockフラグをlocalStorageに保存して即時適用
+      if(localStorage.getItem('yonder_reading_lock') === '1'){
+        document.documentElement.classList.add('reading-lock-early');
+      }
+    } catch(e){}
+  })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
@@ -189,11 +202,13 @@
     .section-head{font-size:22px !important;}
     .done-title{font-size:24px !important;}
 
-    /* 読書中ロック */
+    /* 読書中ロック（即時適用）*/
+    html.reading-lock-early #s-setup,
     body.reading-lock #s-setup{
       pointer-events:none !important;
       opacity:0.4 !important;
     }
+    html.reading-lock-early .tab-item:first-child,
     body.reading-lock .tab-item:first-child{
       pointer-events:none !important;
       opacity:0.4 !important;
@@ -390,9 +405,23 @@
   <script src="js/supabase.js"></script>
   <script src="js/reader.js"></script>
   <script>
+  // goToをラップ：reading-lock中はs-setupへの遷移をブロック
+  const _origGoTo = window.goTo;
+  window.goTo = function(id) {
+    if (id === 's-setup' || id === 's-pick') {
+      if (document.body.classList.contains('reading-lock')) return;
+      if (document.documentElement.classList.contains('reading-lock-early')) return;
+    }
+    _origGoTo(id);
+  };
+  </script>
+  <script>
     function handleReadTab() {
-      // s-read・s-bail・s-eval・s-report・s-doneがactiveなら何もしない
-      const lockScreens = ['s-read','s-bail','s-eval','s-report','s-done'];
+      // bodyにreading-lockがある場合は完全ブロック
+      if (document.body.classList.contains('reading-lock')) return;
+      if (document.documentElement.classList.contains('reading-lock-early')) return;
+      // 読書関連画面がactiveなら完全ブロック
+      const lockScreens = ['s-read','s-bail','s-eval','s-report'];
       for (const id of lockScreens) {
         const el = document.getElementById(id);
         if (el && el.classList.contains('active')) return;
@@ -405,7 +434,7 @@
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
     }
   </script>
 
