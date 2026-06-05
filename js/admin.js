@@ -41,7 +41,7 @@ async function loadStats() {
   const { count: novelCount } = await sb.from('novels').select('*', { count: 'exact', head: true });
   const { count: reviewCount } = await sb.from('reviews').select('*', { count: 'exact', head: true });
   const { count: reportCount } = await sb.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-  const { count: userCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+  const { data: userCount } = await sb.rpc('get_user_count');
 
   document.getElementById('s-novels').textContent = novelCount || 0;
   document.getElementById('s-reviews').textContent = reviewCount || 0;
