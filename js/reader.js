@@ -73,6 +73,9 @@ function updateSkipCount() {
   updateSkipCount();
   await loadNotices();
 
+  // ニックネーム未設定チェック
+  await checkNickname();
+
   const afterLoginNovel = localStorage.getItem('yonder_after_login_novel');
   if (afterLoginNovel) {
     localStorage.removeItem('yonder_after_login_novel');
@@ -657,4 +660,68 @@ function toggleNotices() {
       }
     });
   }
+}
+
+// ── ニックネーム設定モーダル ──────────────────────────
+async function checkNickname() {
+  const { data: profile } = await sb.from('profiles')
+    .select('pen_name').eq('user_id', currentUser.id).single();
+  // pen_name が null または未設定ならモーダルを表示
+  if (!profile || profile.pen_name === null || profile.pen_name === undefined) {
+    showNicknameModal();
+  }
+}
+
+function showNicknameModal() {
+  const modal = document.getElementById('nickname-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function onNicknameInput() {
+  const input = document.getElementById('nickname-input');
+  const count = document.getElementById('nickname-count');
+  const btn = document.getElementById('nickname-submit');
+  const val = input.value.trim();
+  if (count) count.textContent = input.value.length + ' / 20';
+  if (btn) { btn.disabled = val.length === 0; btn.style.opacity = val.length === 0 ? '.4' : '1'; }
+}
+
+async function submitNickname() {
+  const input = document.getElementById('nickname-input');
+  const err = document.getElementById('nickname-err');
+  const btn = document.getElementById('nickname-submit');
+  const val = input.value.trim();
+  if (!val) return;
+  btn.disabled = true; btn.textContent = '保存中...';
+  err.style.display = 'none';
+  try {
+    await sb.from('profiles').upsert({
+      user_id: currentUser.id,
+      pen_name: val,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    document.getElementById('nickname-modal').style.display = 'none';
+  } catch(e) {
+    err.textContent = '保存に失敗しました。もう一度お試しください。';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = '決定する';
+  }
+}
+
+async function skipNickname() {
+  // Booker# 連番を取得してセット
+  try {
+    const { data } = await sb.rpc('get_next_booker_number');
+    const num = data || 1;
+    const bookerName = 'Booker#' + String(num).padStart(4, '0');
+    await sb.from('profiles').upsert({
+      user_id: currentUser.id,
+      pen_name: bookerName,
+      booker_number: num,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+  } catch(e) {
+    console.log('skip nickname error:', e);
+  }
+  document.getElementById('nickname-modal').style.display = 'none';
 }

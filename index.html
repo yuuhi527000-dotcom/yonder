@@ -33,6 +33,29 @@
     .tab-item{flex:1;padding:12px 0 16px;text-align:center;font-size:13px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;font-family:'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:color .15s;}
     .tab-item i{font-size:28px;}
     .tab-item.active{color:var(--acc);}
+    /* ランキング */
+    .rank-tab{flex:1;padding:9px 4px;font-size:12px;color:var(--ink3);background:none;border:none;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;}
+    .rank-tab-active{background:var(--acc3);color:var(--acc);font-weight:500;}
+    .rank-genre-btn{padding:5px 12px;border:0.5px solid var(--border);border-radius:20px;font-size:11px;color:var(--ink3);background:#fff;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;white-space:nowrap;}
+    .rank-genre-active{background:var(--acc);border-color:var(--acc);color:#fff;}
+    .rank-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all .15s;}
+    .rank-card:hover{border-color:var(--acc2);}
+    .rank-num{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:var(--ink3);width:26px;text-align:center;flex-shrink:0;line-height:1.2;}
+    .rank-num.top1{color:#c9a227;}
+    .rank-num.top2{color:#8e9aaf;}
+    .rank-num.top3{color:#a0674b;}
+    .rank-body{flex:1;min-width:0;}
+    .rank-title{font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .rank-copy{font-size:11px;color:var(--ink2);line-height:1.65;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .rank-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .rank-score{font-size:13px;font-weight:700;color:#4a9b6f;}
+    .rank-genre-tag{font-size:10px;color:var(--acc2);font-weight:700;}
+    .rank-count{font-size:10px;color:var(--ink3);}
+    .rank-bar-wrap{margin-top:5px;}
+    .rank-bar-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+    .rank-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+    .rank-loading{text-align:center;padding:40px;font-size:13px;color:var(--ink3);}
+    .rank-empty{text-align:center;padding:40px 20px;font-size:13px;color:var(--ink3);line-height:1.8;}
     .sl{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;margin-bottom:9px;}
     .fsec{margin-bottom:20px;}
     .tag-group{display:flex;flex-wrap:wrap;gap:7px;}
@@ -209,7 +232,9 @@
       opacity:0.4 !important;
     }
     html.reading-lock-early .tab-item:first-child,
-    body.reading-lock .tab-item:first-child{
+    html.reading-lock-early #nav-ranking,
+    body.reading-lock .tab-item:first-child,
+    body.reading-lock #nav-ranking{
       pointer-events:none !important;
       opacity:0.4 !important;
     }
@@ -393,10 +418,51 @@
       <button class="next-btn" onclick="goTo('s-setup')">次の作品を探す →</button>
       <div style="margin-top:16px;"><a href="history.html" style="font-size:12px;color:var(--ink3);text-decoration:none;">読んだ作品の履歴を見る →</a></div>
     </div>
+
+    <!-- ⑧ ランキング -->
+    <div id="s-ranking" class="screen">
+      <div style="margin-bottom:14px;">
+        <div style="font-family:'Noto Serif JP',serif;font-size:17px;font-weight:500;color:var(--ink);margin-bottom:4px;">ランキング</div>
+        <div style="font-size:11px;color:var(--ink3);">読者の評価をもとに集計しています</div>
+      </div>
+      <!-- ランキング種別タブ -->
+      <div style="display:flex;gap:0;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;background:#fff;">
+        <button id="rank-tab-good" class="rank-tab rank-tab-active" onclick="switchRankTab('good')">よかった率</button>
+        <button id="rank-tab-read" class="rank-tab" onclick="switchRankTab('read')" style="border-left:0.5px solid var(--border);border-right:0.5px solid var(--border);">読了率</button>
+        <button id="rank-tab-pick" class="rank-tab" onclick="switchRankTab('pick')">選択率</button>
+      </div>
+      <!-- ジャンルフィルタ -->
+      <div style="overflow-x:auto;margin-bottom:14px;padding-bottom:4px;">
+        <div style="display:flex;gap:6px;min-width:max-content;" id="rank-genre-filter">
+          <button class="rank-genre-btn rank-genre-active" onclick="setRankGenre('')">すべて</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('恋愛')">恋愛</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('ファンタジー')">ファンタジー</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('ホラー')">ホラー</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('歴史・時代')">歴史・時代</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('SF')">SF</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('日常')">日常</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('ミステリー')">ミステリー</button>
+          <button class="rank-genre-btn" onclick="setRankGenre('その他')">その他</button>
+        </div>
+      </div>
+      <!-- 最低評価数フィルタ -->
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px;">
+        <span style="font-size:10px;color:var(--ink3);">最低評価数</span>
+        <select id="rank-min-reviews" onchange="loadRanking()" style="padding:4px 8px;border:0.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--ink);background:#fff;font-family:'Zen Kaku Gothic New',sans-serif;">
+          <option value="1">1件〜</option>
+          <option value="3" selected>3件〜</option>
+          <option value="5">5件〜</option>
+          <option value="10">10件〜</option>
+        </select>
+      </div>
+      <!-- ランキング一覧 -->
+      <div id="ranking-list"></div>
+    </div>
   </div>
 
   <nav class="tab-bar">
-    <button class="tab-item active" onclick="handleReadTab()"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
+    <button class="tab-item active" onclick="handleReadTab()" id="nav-read"><i class="ti ti-book" aria-hidden="true"></i>読む</button>
+    <button class="tab-item" onclick="location.href='ranking.html'" id="nav-ranking"><i class="ti ti-trophy" aria-hidden="true"></i>ランキング</button>
     <button class="tab-item" onclick="location.href='post.html'"><i class="ti ti-upload" aria-hidden="true"></i>投稿</button>
     <button class="tab-item" onclick="location.href='dashboard.html'"><i class="ti ti-chart-bar" aria-hidden="true"></i>統計</button>
   </nav>
@@ -429,7 +495,23 @@
       // s-setupが既にactiveなら何もしない
       const setup = document.getElementById('s-setup');
       if (setup && setup.classList.contains('active')) return;
-      switchTab('read');
+      goTo('s-setup');
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById('nav-read').classList.add('active');
+    }
+
+    function handleRankingTab() {
+      // reading-lock中はブロック
+      if (document.body.classList.contains('reading-lock')) return;
+      const lockScreens = ['s-read','s-bail','s-eval','s-report'];
+      for (const id of lockScreens) {
+        const el = document.getElementById(id);
+        if (el && el.classList.contains('active')) return;
+      }
+      goTo('s-ranking');
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById('nav-ranking').classList.add('active');
+      loadRanking();
     }
 
     function switchTab(tab) {
@@ -464,6 +546,23 @@
     });
   })();
   </script>
+
+  <!-- ニックネーム設定モーダル -->
+  <div id="nickname-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(44,31,20,.55);z-index:2000;display:none;align-items:flex-end;justify-content:center;">
+    <div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:540px;padding:24px 20px 36px;">
+      <div style="font-size:28px;text-align:center;margin-bottom:12px;">📖</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:16px;font-weight:500;color:var(--ink);text-align:center;margin-bottom:6px;">ニックネームを決めよう</div>
+      <div style="font-size:12px;color:var(--ink3);text-align:center;line-height:1.8;margin-bottom:18px;">読者ランキングに表示されます。<br>投稿作品のペンネームとしても使えます。</div>
+      <input id="nickname-input" type="text" maxlength="20" placeholder="例：よみさくら" style="width:100%;padding:12px 14px;border:0.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--ink);background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;margin-bottom:6px;box-sizing:border-box;" oninput="onNicknameInput()">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:16px;">
+        <span>1〜20文字　あとでダッシュボードで変更できます</span>
+        <span id="nickname-count">0 / 20</span>
+      </div>
+      <div id="nickname-err" style="font-size:11px;color:#b85a42;margin-bottom:10px;display:none;"></div>
+      <button id="nickname-submit" onclick="submitNickname()" style="width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;cursor:pointer;opacity:.4;transition:opacity .15s;" disabled>決定する</button>
+      <button onclick="skipNickname()" style="width:100%;padding:10px;background:none;border:none;font-size:12px;color:var(--ink3);margin-top:8px;cursor:pointer;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif;">スキップ → Booker#として自動登録されます</button>
+    </div>
+  </div>
 
 </body>
 </html>

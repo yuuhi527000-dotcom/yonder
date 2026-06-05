@@ -195,6 +195,17 @@
       <div id="novels-list"><div class="loading">読み込み中...</div></div>
 
       <div class="section-divider"></div>
+      <div class="section-label">ニックネーム（ペンネーム）</div>
+      <div class="section-hint">読者ランキングと投稿作品のペンネームとして表示されます。</div>
+      <div class="link-row">
+        <div class="link-label"><i class="ti ti-user" style="font-size:14px" aria-hidden="true"></i>ニックネーム</div>
+        <input class="link-inp" type="text" id="nickname-inp" maxlength="20" placeholder="例：よみさくら">
+      </div>
+      <div class="link-hint" style="display:flex;justify-content:space-between;"><span>1〜20文字</span><span id="nickname-char-count" style="color:var(--ink3);">0 / 20</span></div>
+      <div class="err" id="nickname-err"></div>
+      <button class="save-btn" id="nickname-save-btn" onclick="saveNickname()">ニックネームを保存する</button>
+
+      <div class="section-divider"></div>
       <div class="section-label">リンク設定</div>
       <div class="section-hint">投稿時の初期値として使われます。読了後に読者へ表示されます。</div>
 

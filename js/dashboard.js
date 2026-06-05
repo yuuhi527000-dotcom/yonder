@@ -211,9 +211,12 @@ function renderReviews() {
       </span>
       <div class="r-body">
         <div class="r-comment">${r.comment ? escHtml(r.comment) : '（コメントなし）'}</div>
-        <div class="r-meta">
-          ${r.is_completed ? '読了' : '途中離脱'}
-          ${!r.is_completed && r.bail_reason ? '<span class="bail-tag">理由：' + (bailReasonMap[r.bail_reason] || r.bail_reason) + '</span>' : ''}
+        <div class="r-meta" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span>
+            ${r.is_completed ? '読了' : '途中離脱'}
+            ${!r.is_completed && r.bail_reason ? '<span class="bail-tag">理由：' + (bailReasonMap[r.bail_reason] || r.bail_reason) + '</span>' : ''}
+          </span>
+          ${r.comment ? `<button onclick="openCommentReportModal('${r.id}','${escHtml(r.comment).replace(/'/g,'&#39;').replace(/\n/g,' ').substring(0,30)}')" style="background:none;border:0.5px solid #f0c4b4;border-radius:20px;padding:2px 8px;font-size:10px;color:#b85a42;cursor:pointer;flex-shrink:0;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;" onmouseover="this.style.background='#fdf0ec'" onmouseout="this.style.background='none'"><i class="ti ti-flag" style="font-size:10px"></i> 通報</button>` : ''}
         </div>
       </div>
     </div>
@@ -236,7 +239,38 @@ async function loadLinks() {
     if (data.kakuyomu_url) document.getElementById('link-kakuyomu').value = data.kakuyomu_url;
     if (data.x_url) document.getElementById('link-x').value = data.x_url;
     if (data.notification_email) document.getElementById('notify-email').value = data.notification_email;
+    // ニックネーム
+    const nicknameInp = document.getElementById('nickname-inp');
+    if (nicknameInp && data.pen_name) {
+      nicknameInp.value = data.pen_name;
+      const countEl = document.getElementById('nickname-char-count');
+      if (countEl) countEl.textContent = data.pen_name.length + ' / 20';
+    }
   }
+  // ニックネーム入力イベント
+  const inp = document.getElementById('nickname-inp');
+  if (inp) inp.addEventListener('input', () => {
+    const countEl = document.getElementById('nickname-char-count');
+    if (countEl) countEl.textContent = inp.value.length + ' / 20';
+  });
+}
+
+async function saveNickname() {
+  const inp = document.getElementById('nickname-inp');
+  const errEl = document.getElementById('nickname-err');
+  const btn = document.getElementById('nickname-save-btn');
+  const val = inp.value.trim();
+  if (!val) { errEl.textContent = 'ニックネームを入力してください'; return; }
+  if (val.length > 20) { errEl.textContent = '20文字以内で入力してください'; return; }
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = '保存中...';
+  await sb.from('profiles').upsert({
+    user_id: currentUser.id,
+    pen_name: val,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+  btn.disabled = false; btn.textContent = '保存しました ✓';
+  setTimeout(() => { btn.textContent = 'ニックネームを保存する'; }, 2000);
 }
 
 function shareNovel(id, title, catchcopy) {
@@ -391,4 +425,95 @@ async function resolveInquiry(inquiryId) {
   await sb.from('inquiries').update({ status: 'resolved' }).eq('id', inquiryId);
   currentInquiry = null;
   await renderInquirySection();
+}
+
+// ── コメント通報 ──────────────────────────────
+let commentReportReviewId = null;
+
+function openCommentReportModal(reviewId, previewText) {
+  commentReportReviewId = reviewId;
+  let modal = document.getElementById('comment-report-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'comment-report-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:0;';
+    modal.onclick = (e) => { if (e.target === modal) closeCommentReportModal(); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:540px;padding:20px 20px 32px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;color:var(--ink);">コメントを通報する</div>
+        <button onclick="closeCommentReportModal()" style="background:none;border:none;font-size:20px;color:var(--ink3);cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink3);margin-bottom:14px;line-height:1.7;border:0.5px solid var(--border);">「${escHtml(previewText)}${previewText.length >= 30 ? '…' : ''}」</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">通報理由</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;" id="comment-report-reasons">
+        ${[
+          ['harassment','誹謗中傷・嫌がらせ','作者または他ユーザーへの攻撃的な内容'],
+          ['spam','スパム・宣伝','無関係な宣伝・同じ内容の繰り返し'],
+          ['spoiler','ネタバレ','作品の重要な内容を含む'],
+          ['inappropriate','不適切な表現','差別・暴力・性的な表現'],
+          ['other','その他','上記以外の理由'],
+        ].map(([key, label, sub]) => `
+          <button onclick="selCommentReportReason(this,'${key}')" style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:0.5px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;text-align:left;font-family:'Zen Kaku Gothic New',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='var(--acc2)'" onmouseout="if(!this.classList.contains('cr-sel'))this.style.borderColor='var(--border)'">
+            <div style="flex:1;">
+              <div style="font-size:13px;color:var(--ink);font-weight:500;">${label}</div>
+              ${sub ? `<div style="font-size:11px;color:var(--ink3);margin-top:2px;">${sub}</div>` : ''}
+            </div>
+          </button>
+        `).join('')}
+      </div>
+      <button id="comment-report-submit" onclick="submitCommentReport()" disabled style="width:100%;padding:12px;background:#b85a42;color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;cursor:pointer;opacity:.4;transition:opacity .15s;">通報する</button>
+    </div>
+  `;
+  modal.style.display = 'flex';
+}
+
+function selCommentReportReason(el, key) {
+  document.querySelectorAll('#comment-report-reasons button').forEach(b => {
+    b.classList.remove('cr-sel');
+    b.style.borderColor = 'var(--border)';
+    b.style.background = '#fff';
+    b.style.color = '';
+  });
+  el.classList.add('cr-sel');
+  el.style.borderColor = '#b85a42';
+  el.style.background = '#fdf0ec';
+  el.dataset.reason = key;
+  const btn = document.getElementById('comment-report-submit');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+async function submitCommentReport() {
+  const sel = document.querySelector('#comment-report-reasons .cr-sel');
+  if (!sel || !commentReportReviewId) return;
+  const reason = sel.dataset.reason;
+  const btn = document.getElementById('comment-report-submit');
+  btn.disabled = true; btn.textContent = '送信中...';
+  await sb.from('reports').insert({
+    novel_id: currentNovelId,
+    review_id: commentReportReviewId,
+    user_id: currentUser.id,
+    reason,
+    report_type: 'comment',
+    status: 'pending'
+  });
+  closeCommentReportModal();
+  // 送信完了トースト
+  showToast('通報を受け付けました');
+}
+
+function closeCommentReportModal() {
+  const modal = document.getElementById('comment-report-modal');
+  if (modal) modal.remove();
+  commentReportReviewId = null;
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(44,31,20,.85);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:2000;pointer-events:none;transition:opacity .3s;';
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2200);
 }

@@ -200,30 +200,66 @@ function changePage(page) {
 async function loadReports() {
   const el = document.getElementById('reports-table');
   el.innerHTML = '<div class="loading">読み込み中...</div>';
-  const { data: reports } = await sb.from('reports').select('*, novels(title, catchcopy)').order('created_at', { ascending: false });
+  const { data: reports } = await sb.from('reports').select('*, novels(title, catchcopy), reviews(comment, rating)').order('created_at', { ascending: false });
   if (!reports || reports.length === 0) { el.innerHTML = '<div class="loading">通報はありません</div>'; return; }
-  const reasonMap = { copyright:'著作権侵害', inappropriate:'不適切な内容', other:'その他' };
+  const reasonMap = { copyright:'著作権侵害', inappropriate:'不適切な内容', other:'その他', spam:'スパム・宣伝', harassment:'誹謗中傷', spoiler:'ネタバレ' };
   const statusMap = { pending:'未対応', resolved:'対応済み', dismissed:'却下' };
   const statusClass = { pending:'badge-report', resolved:'badge-good', dismissed:'badge-hidden' };
-  el.innerHTML = `
-    <table>
-      <thead>
-        <tr><th>作品</th><th>理由</th><th>コメント</th><th>状態</th><th>操作</th></tr>
-      </thead>
+
+  // タブ切り替えUI
+  const novelReports = reports.filter(r => r.report_type !== 'comment');
+  const commentReports = reports.filter(r => r.report_type === 'comment');
+  const pendingNovel = novelReports.filter(r => r.status === 'pending').length;
+  const pendingComment = commentReports.filter(r => r.status === 'pending').length;
+
+  function renderTable(list) {
+    if (list.length === 0) return '<div class="loading">通報はありません</div>';
+    return `<table>
+      <thead><tr><th>対象</th><th>理由</th><th>内容</th><th>状態</th><th>日付</th><th>操作</th></tr></thead>
       <tbody>
-        ${reports.map(r => `
-          <tr id="report-row-${r.id}">
-            <td><div class="novel-title-cell">${r.novels ? escHtml(r.novels.title) : '（削除済み）'}</div></td>
+        ${list.map(r => {
+          const isComment = r.report_type === 'comment';
+          const targetCell = isComment
+            ? `<div style="font-size:11px;color:var(--ink3);margin-bottom:2px;"><span style="background:#fdf0ec;color:#b85a42;border-radius:4px;padding:1px 5px;font-size:10px;">コメント</span></div>
+               <div class="novel-title-cell">${r.novels ? escHtml(r.novels.title) : '（削除済み）'}</div>
+               ${r.reviews && r.reviews.comment ? '<div style="font-size:11px;color:var(--ink3);margin-top:3px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">💬 ' + escHtml(r.reviews.comment) + '</div>' : ''}`
+            : `<div class="novel-title-cell">${r.novels ? escHtml(r.novels.title) : '（削除済み）'}</div>`;
+          return `<tr id="report-row-${r.id}">
+            <td>${targetCell}</td>
             <td style="font-size:12px">${reasonMap[r.reason]||r.reason}</td>
-            <td style="font-size:12px;color:var(--ink3);max-width:200px;">${r.comment?escHtml(r.comment):'—'}</td>
+            <td style="font-size:12px;color:var(--ink3);max-width:160px;">${r.comment?escHtml(r.comment):'—'}</td>
             <td><span class="badge ${statusClass[r.status]}">${statusMap[r.status]}</span></td>
+            <td style="font-size:11px;color:var(--ink3);white-space:nowrap">${new Date(r.created_at).toLocaleDateString('ja-JP')}</td>
             <td>${r.status==='pending'?`
-              <button class="action-btn danger" onclick="handleReport('${r.id}','${r.novel_id}','resolved')">非表示</button>
-              <button class="action-btn" onclick="handleReport('${r.id}','${r.novel_id}','dismissed')">却下</button>`:'—'}
+              ${isComment
+                ? `<button class="action-btn danger" onclick="handleReport('${r.id}','${r.novel_id}','resolved',true)">コメント削除</button>`
+                : `<button class="action-btn danger" onclick="handleReport('${r.id}','${r.novel_id}','resolved',false)">非表示</button>`}
+              <button class="action-btn" onclick="handleReport('${r.id}','${r.novel_id}','dismissed',false)">却下</button>`:'—'}
             </td>
-          </tr>`).join('')}
+          </tr>`;
+        }).join('')}
       </tbody>
     </table>`;
+  }
+
+  el.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button id="rtab-all" onclick="switchReportTab('all')" class="filter-tag active">すべて（${reports.filter(r=>r.status==='pending').length}件未対応）</button>
+      <button id="rtab-novel" onclick="switchReportTab('novel')" class="filter-tag">作品（${pendingNovel}）</button>
+      <button id="rtab-comment" onclick="switchReportTab('comment')" class="filter-tag">コメント（${pendingComment}）</button>
+    </div>
+    <div id="rtab-content-all">${renderTable(reports)}</div>
+    <div id="rtab-content-novel" style="display:none">${renderTable(novelReports)}</div>
+    <div id="rtab-content-comment" style="display:none">${renderTable(commentReports)}</div>
+  `;
+}
+
+function switchReportTab(tab) {
+  ['all','novel','comment'].forEach(t => {
+    document.getElementById('rtab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('rtab-content-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+}
 }
 
 async function hideNovel(id) {
@@ -246,9 +282,19 @@ async function deleteNovel(id) {
     await loadNovels(); await loadStats();
   } catch(e) { alert('削除に失敗しました：' + e.message); }
 }
-async function handleReport(reportId, novelId, action) {
+async function handleReport(reportId, novelId, action, isComment) {
   await sb.from('reports').update({ status: action }).eq('id', reportId);
-  if (action === 'resolved' && novelId) await sb.from('novels').update({ is_visible: false }).eq('id', novelId);
+  if (action === 'resolved') {
+    if (isComment) {
+      // コメント通報の場合：対象レビューのコメントをnullにする
+      const { data: rep } = await sb.from('reports').select('review_id').eq('id', reportId).single();
+      if (rep && rep.review_id) {
+        await sb.from('reviews').update({ comment: null }).eq('id', rep.review_id);
+      }
+    } else if (novelId) {
+      await sb.from('novels').update({ is_visible: false }).eq('id', novelId);
+    }
+  }
   await loadReports(); await loadStats();
 }
 
