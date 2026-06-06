@@ -75,6 +75,7 @@
       <button class="tab" onclick="switchTab('reports')">通報一覧</button>
       <button class="tab" onclick="switchTab('notices')">お知らせ</button>
       <button class="tab" onclick="switchTab('inquiries')">問い合わせ</button>
+      <button class="tab" onclick="switchTab('ranking')">ランキング</button>
     </div>
 
     <div class="tab-panel active" id="panel-novels">
@@ -101,6 +102,9 @@
         <button onclick="postNotice()" style="padding:11px 24px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Serif JP',serif;font-size:13px;font-weight:500;cursor:pointer;">投稿する</button>
       </div>
       <div id="notices-list-admin"><div class="loading">読み込み中...</div></div>
+    </div>
+    <div class="tab-panel" id="panel-ranking">
+      <div id="ranking-table"><div class="loading">読み込み中...</div></div>
     </div>
   </div>
 
