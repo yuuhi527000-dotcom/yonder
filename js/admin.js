@@ -530,78 +530,115 @@ async function updateRanking() {
 }
 
 // ── 管理者用ランキング全件表示 ───────────────────────
+const RANKING_LEVELS = [
+  { lv:1, name:'読みはじめ', min:0 },
+  { lv:2, name:'本の虫', min:50000 },
+  { lv:3, name:'活字中毒', min:200000 },
+  { lv:4, name:'書斎の住人', min:500000 },
+  { lv:5, name:'図書館の主', min:1000000 },
+  { lv:6, name:'言葉の海人', min:3000000 },
+  { lv:7, name:'伝説の読み手', min:10000000 },
+];
+function getRankingLevel(chars) {
+  let lv = RANKING_LEVELS[0];
+  for (const l of RANKING_LEVELS) { if (chars >= l.min) lv = l; }
+  return lv;
+}
+function fmtRankChars(n) {
+  if (n >= 10000) return (Math.round(n/1000)/10).toFixed(1) + '万字';
+  return n.toLocaleString() + '字';
+}
+function rankDisplayName(p) {
+  if (!p) return '—';
+  const booker = p.booker_number ? 'Booker#' + String(p.booker_number).padStart(4,'0') : null;
+  if (p.pen_name && p.pen_name !== booker) {
+    return escHtml(p.pen_name) + (booker ? '（' + escHtml(booker) + '）' : '');
+  }
+  return booker || '—';
+}
+
+let rankingAdminData = null;
+let rankingAdminSort = { key: 'rank', asc: true };
+
 async function loadRankingAdmin() {
   const el = document.getElementById('ranking-table');
   el.innerHTML = '<div class="loading">読み込み中...</div>';
 
-  // ランキング全件取得
-  const { data: rankings } = await sb
-    .from('reader_ranking')
-    .select('*')
-    .order('rank', { ascending: true });
-
+  const { data: rankings } = await sb.from('reader_ranking').select('*').order('rank', { ascending: true });
   if (!rankings || rankings.length === 0) {
     el.innerHTML = '<div class="loading">ランキングデータがありません。更新ボタンを押してください。</div>';
     return;
   }
 
-  // プロフィール一括取得
   const userIds = rankings.map(r => r.user_id);
-  const { data: profiles } = await sb
-    .from('profiles')
-    .select('user_id, pen_name, booker_number')
-    .in('user_id', userIds);
-
+  const { data: profiles } = await sb.from('profiles').select('user_id, pen_name, booker_number').in('user_id', userIds);
   const profileMap = {};
   (profiles || []).forEach(p => { profileMap[p.user_id] = p; });
 
-  const LEVELS = [
-    { lv:1, name:'読みはじめ', min:0 },
-    { lv:2, name:'本の虫', min:50000 },
-    { lv:3, name:'活字中毒', min:200000 },
-    { lv:4, name:'書斎の住人', min:500000 },
-    { lv:5, name:'図書館の主', min:1000000 },
-    { lv:6, name:'言葉の海人', min:3000000 },
-    { lv:7, name:'伝説の読み手', min:10000000 },
-  ];
-  function getLevel(chars) {
-    let lv = LEVELS[0];
-    for (const l of LEVELS) { if (chars >= l.min) lv = l; }
-    return lv;
-  }
-  function fmtChars(n) {
-    if (n >= 10000) return (Math.round(n/1000)/10).toFixed(1) + '万字';
-    return n.toLocaleString() + '字';
-  }
-  function displayName(p) {
-    if (!p) return '—';
-    const booker = p.booker_number ? 'Booker#' + String(p.booker_number).padStart(4,'0') : null;
-    if (p.pen_name && p.pen_name !== booker) {
-      return escHtml(p.pen_name) + (booker ? '（' + escHtml(booker) + '）' : '');
-    }
-    return booker || '—';
+  rankingAdminData = rankings.map(r => ({
+    ...r,
+    lv: getRankingLevel(r.total_chars).lv,
+    lv_name: getRankingLevel(r.total_chars).name,
+    display_name: rankDisplayName(profileMap[r.user_id]),
+  }));
+
+  renderRankingAdminTable();
+}
+
+function renderRankingAdminTable() {
+  const el = document.getElementById('ranking-table');
+  if (!rankingAdminData) return;
+
+  const { key, asc } = rankingAdminSort;
+  const sorted = [...rankingAdminData].sort((a, b) => {
+    let va, vb;
+    if (key === 'rank') { va = a.rank; vb = b.rank; }
+    else if (key === 'name') { va = a.display_name; vb = b.display_name; }
+    else if (key === 'lv') { va = a.lv; vb = b.lv; }
+    else if (key === 'chars') { va = a.total_chars; vb = b.total_chars; }
+    else if (key === 'novels') { va = a.novel_count; vb = b.novel_count; }
+    if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+    return asc ? va - vb : vb - va;
+  });
+
+  function thBtn(label, sortKey) {
+    const active = key === sortKey;
+    const arrow = active ? (asc ? ' ▲' : ' ▼') : ' ↕';
+    return `<th style="cursor:pointer;user-select:none;white-space:nowrap;${active?'color:var(--acc);':''}" onclick="sortRankingAdmin('${sortKey}')">${label}<span style="font-size:10px;">${arrow}</span></th>`;
   }
 
   el.innerHTML = `
-    <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;">${rankings.length}人がランキングに登録されています</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;">${rankingAdminData.length}人がランキングに登録されています</div>
     <table>
       <thead>
-        <tr><th>順位</th><th>名前</th><th>レベル</th><th>累計文字数</th><th>読んだ作品数</th><th>最終更新</th></tr>
+        <tr>
+          ${thBtn('順位','rank')}
+          ${thBtn('名前','name')}
+          ${thBtn('レベル','lv')}
+          ${thBtn('累計文字数','chars')}
+          ${thBtn('読んだ作品数','novels')}
+          <th>最終更新</th>
+        </tr>
       </thead>
       <tbody>
-        ${rankings.map(r => {
-          const p = profileMap[r.user_id];
-          const lv = getLevel(r.total_chars);
-          return `<tr>
-            <td style="font-weight:500;color:${r.rank<=3?'var(--acc)':'var(--ink)'};">${r.rank}位</td>
-            <td>${displayName(p)}</td>
-            <td style="font-size:12px;">Lv.${lv.lv} ${escHtml(lv.name)}</td>
-            <td style="font-size:12px;">${fmtChars(r.total_chars)}</td>
-            <td style="font-size:12px;">${r.novel_count}作品</td>
-            <td style="font-size:11px;color:var(--ink3);">${new Date(r.updated_at).toLocaleDateString('ja-JP')}</td>
-          </tr>`;
-        }).join('')}
+        ${sorted.map(r => `<tr>
+          <td style="font-weight:500;color:${r.rank<=3?'var(--acc)':'var(--ink)'};">${r.rank}位</td>
+          <td>${r.display_name}</td>
+          <td style="font-size:12px;">Lv.${r.lv} ${escHtml(r.lv_name)}</td>
+          <td style="font-size:12px;">${fmtRankChars(r.total_chars)}</td>
+          <td style="font-size:12px;">${r.novel_count}作品</td>
+          <td style="font-size:11px;color:var(--ink3);">${new Date(r.updated_at).toLocaleDateString('ja-JP')}</td>
+        </tr>`).join('')}
       </tbody>
     </table>
   `;
+}
+
+function sortRankingAdmin(key) {
+  if (rankingAdminSort.key === key) {
+    rankingAdminSort.asc = !rankingAdminSort.asc;
+  } else {
+    rankingAdminSort = { key, asc: true };
+  }
+  renderRankingAdminTable();
 }
