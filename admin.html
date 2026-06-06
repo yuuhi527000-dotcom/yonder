@@ -63,6 +63,11 @@
       <div class="stat-card"><div class="stat-n" id="s-novels">-</div><div class="stat-l">総投稿数</div></div>
       <div class="stat-card"><div class="stat-n" id="s-reviews">-</div><div class="stat-l">総評価数</div></div>
       <div class="stat-card"><div class="stat-n" id="s-reports">-</div><div class="stat-l">未対応通報</div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="updateRanking()">
+        <div class="stat-n" id="s-ranking-btn" style="font-size:22px;">🏆</div>
+        <div class="stat-l">ランキング更新</div>
+        <div id="s-ranking-status" style="font-size:10px;color:var(--ink3);margin-top:4px;"></div>
+      </div>
     </div>
 
     <div class="tabs">

@@ -470,3 +470,60 @@ async function sendAdminReply(inquiryId) {
   await sb.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_type: 'admin', body });
   await openInquiryAdmin(inquiryId);
 }
+
+// ── ランキング手動更新 ────────────────────────────────
+async function updateRanking() {
+  const btn = document.getElementById('s-ranking-btn');
+  const status = document.getElementById('s-ranking-status');
+  btn.textContent = '⏳';
+  status.textContent = '更新中...';
+
+  try {
+    // reviewsとnovelsからuser_idごとに文字数を集計してupsert
+    const { data: reviews, error } = await sb
+      .from('reviews')
+      .select('user_id, novels(char_count)')
+      .not('novels', 'is', null);
+
+    if (error) throw error;
+
+    // user_idごとに集計
+    const map = {};
+    for (const row of reviews || []) {
+      const uid = row.user_id;
+      const chars = row.novels?.char_count || 0;
+      if (chars === 0) continue;
+      if (!map[uid]) map[uid] = { total_chars: 0, novel_count: 0 };
+      map[uid].total_chars += chars;
+      map[uid].novel_count += 1;
+    }
+
+    // 文字数降順でソートしてrankを付与
+    const sorted = Object.entries(map)
+      .sort((a, b) => b[1].total_chars - a[1].total_chars);
+
+    const upsertData = sorted.map(([user_id, v], i) => ({
+      user_id,
+      total_chars: v.total_chars,
+      novel_count: v.novel_count,
+      rank: i + 1,
+      updated_at: new Date().toISOString(),
+    }));
+
+    if (upsertData.length > 0) {
+      const { error: upsertErr } = await sb
+        .from('reader_ranking')
+        .upsert(upsertData, { onConflict: 'user_id' });
+      if (upsertErr) throw upsertErr;
+    }
+
+    btn.textContent = '✅';
+    status.textContent = `${upsertData.length}人を更新しました`;
+    setTimeout(() => { btn.textContent = '🏆'; status.textContent = ''; }, 3000);
+  } catch (e) {
+    btn.textContent = '❌';
+    status.textContent = 'エラーが発生しました';
+    console.error(e);
+    setTimeout(() => { btn.textContent = '🏆'; status.textContent = ''; }, 3000);
+  }
+}
